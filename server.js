@@ -3,7 +3,7 @@ const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
 const app = express();
 const corsOptions = {
-  origin: 'http://localhost:3000', // Replace with your local React server's URL
+  origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com', // Replace with your local React server's URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
 app.use(cors(corsOptions));
