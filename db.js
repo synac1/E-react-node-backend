@@ -32,7 +32,7 @@ sequelize.authenticate()
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
-db.User = require("./app/models/User")(sequelize, Sequelize);
-// Load other models similarly
+db.PatientsRegistration = require("./app/models/PatientsRegistration")(sequelize, Sequelize);
+
 
 module.exports = db;
