@@ -2,7 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000', // Replace with your local React server's URL
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+};
+app.use(cors(corsOptions));
+
+// app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
