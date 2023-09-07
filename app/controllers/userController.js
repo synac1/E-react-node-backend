@@ -1,73 +1,38 @@
-// app/controllers/userController.js
-// const sequelize = require("../../db");
-// const User = sequelize.User;
+
+const dbConfig = require("../../app/config/db.config");
 
 const db = require("../../db");
-const User = db.User;
-
-
-
-// exports.getAllUsers = (req, res) => {
-//   // Implement logic to fetch all users from the database
-
-// };
+const { QueryTypes } = require("sequelize");
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
-    res.json(users);
+    const tables = await db.sequelize.query(
+      "SHOW TABLES",
+      { type: QueryTypes.SHOWTABLES, database: dbConfig.DB }
+    );
+    //console.log("tables:", tables);
+    res.json(tables);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-exports.createUser = async (req, res) => {
-  try {
-    const { username, email } = req.body;
-    const newUser = await User.create({
-      username,
-      email,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    res.json(newUser);
-  } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-exports.deleteUser = async (req, res) => {
-  const userId = req.params.id;
-
-  try {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    await user.destroy();
-    res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Error fetching tables:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// exports.createUser = (req, res) => {
-//   // Implement logic to create a new user in the database
-// };
+exports.getAllPatients = async (req, res) => {
+  console.log("pateints")
 
-exports.getUserById = (req, res) => {
-  // Implement logic to fetch a user by ID from the database
+  try {
+    const patients = await db.sequelize.query(
+      "SELECT * FROM nkw2tiuvgv6ufu1z.patients_registration",
+      { type: QueryTypes.SELECT }
+    );
+    //console.log("pateints",patients)
+    res.json(patients);
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
-exports.updateUser = (req, res) => {
-  // Implement logic to update a user by ID in the database
-};
 
-// exports.deleteUser = (req, res) => {
-//   // Implement logic to delete a user by ID from the database
-// };
 
