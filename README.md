@@ -22,7 +22,7 @@ Follow these steps to install and set up the E-REACT-NODE-BACKEND project:
    Clone the project repository to your local machine using Git:
 
    ```bash
-   git clone https://github.com/your-username/e-react-node-backend.git
+   https://github.com/ottawa-ehospital/E-react-node-backend.git
    ```
 
    Replace `your-username` with your actual GitHub username.
