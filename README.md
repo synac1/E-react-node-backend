@@ -54,7 +54,7 @@ Follow these steps to install and set up the E-REACT-NODE-BACKEND project:
    To start the Node.js server, run the following command:
 
    ```bash
-   node server.js
+   npm start
    ```
 
    This will start the server, and it will be accessible at the specified port (usually port 8080 by default).
