@@ -19,7 +19,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 exports.getAllPatients = async (req, res) => {
-  console.log("pateints")
+  console.log("patients")
 
   try {
     const patients = await db.sequelize.query(
@@ -35,4 +35,35 @@ exports.getAllPatients = async (req, res) => {
 };
 
 
+exports.getAllDoctors = async (req, res) => {
+  console.log("Doctors")
+
+  try {
+    const doctors = await db.sequelize.query(
+      "SELECT * FROM nkw2tiuvgv6ufu1z.doctors_registration",
+      { type: QueryTypes.SELECT }
+    );
+    //console.log("pateints",patients)
+    res.json(doctors);
+  } catch (error) {
+    console.error("Error fetching doctors:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getAllDoctorVisits = async (req, res) => {
+  console.log("Doctors Visits")
+
+  try {
+    const visits = await db.sequelize.query(
+      "SELECT * FROM nkw2tiuvgv6ufu1z.doctor_servicehistory",
+      { type: QueryTypes.SELECT }
+    );
+    //console.log("pateints",patients)
+    res.json(visits);
+  } catch (error) {
+    console.error("Error fetching visits:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
