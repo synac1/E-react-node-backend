@@ -2,18 +2,22 @@ const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
 const app = express();
+const multer = require('multer');
 const corsOptions = {
  // origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com', 
   origin: '*', // Replace with your local React server's URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
+
+var models = require('./app/models/commonMethod');
+
 app.use(cors(corsOptions));
 
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-var mysql = require("./dbConnection");
+var mysql = require("./app/models/dbConnection");
 const db = require("./db"); 
 db.sequelize.authenticate()
   .then(() => {
@@ -33,7 +37,7 @@ app.use("/api/users", userRoutes); // Mount user routes
 app.post("/searchpatient", (req, res) => {
   
   const phoneNumber = req.body.phoneNumber; // patient phone number, e.g. "6131230000"
-  console.log(phoneNumber);
+  //console.log("in node searchpatient post api you searched for ",phoneNumber);
   // Check patient identity
   if (!phoneNumber) {
       res.send({ error: "Missing patient phone number" });
@@ -62,7 +66,6 @@ app.post("/searchpatient", (req, res) => {
           return;
       }
       patient_id = result[0].id;
-      console.log("Pid:",patient_id);
       sql_search_query = `SELECT * FROM patients_registration WHERE id = "${patient_id}"`;
       let sqlDB = mysql.connect();
       sqlDB.query(sql_search_query, function (err, result) {
@@ -78,6 +81,129 @@ app.post("/searchpatient", (req, res) => {
       //console.log(sql_search_query);
   });
   sqlDB.end();
+});
+
+
+// This is the API for retrieving image from MongoDB by patient phone number
+app.post("/imageRetrieveByPhoneNumber", async (req, res) => {
+ 
+  const phoneNumber = req.body.phoneNumber; // patient phone number, e.g. "6131230000"
+  const recordType = req.body.recordType; // the record type, e.g. "X-Ray", this represents the collection in the database (case sensitive)
+
+  // Check parameters
+  if (!phoneNumber) {
+      res.send({ error: "Missing patient phone number." });
+      console.log("Missing patient phone number.");
+      return;
+  }
+  if (!recordType) {
+      res.send({ error: "Missing record type." });
+      console.log("Missing record type.");
+
+      return;
+  }
+
+  // Execute query
+  sql = `SELECT id FROM patients_registration WHERE MobileNumber = "${phoneNumber}"`;
+  try {
+      result = await mysql.query(sql);
+  } catch (error) {
+      console.log(error,"Something wrong in MySQL." );
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+
+  // Check patient result
+  if (result.length != 1) {
+      res.send({ error: "No patient matched in database." });
+      console.log("No patient matched in database." );
+      return;
+  }
+
+  let patient_id = result[0].id;
+
+  const MongoResult = await models.imageRetrieveByPatientId(patient_id, recordType);
+  res.send(MongoResult);
+});
+
+// This is the API for retrieving image from MongoDB by record id
+app.post("/imageRetrieveByRecordId", async (req, res) => {
+  const _id = req.body._id; // record id, e.g. "640b68a96d5b6382c0a3df4c"
+  const recordType = req.body.recordType; // the record type, e.g. "X-Ray", this represents the collection in the database (case sensitive)
+
+  // Check parameters
+  if (!_id) {
+      res.send({ error: "Missing record id." });
+      return;
+  }
+  if (!recordType) {
+      res.send({ error: "Missing record type." });
+      return;
+  }
+
+  const MongoResult = await models.imageRetrieveByRecordId(_id, recordType);
+  res.send(MongoResult);
+});
+
+// This API is for updating the ML prediction result to the database.
+app.post("/updateDisease", async (req, res) => {
+  
+  const phoneNumber = req.body.phoneNumber; // the patient phone number, e.g. "6131230000"
+  const disease = req.body.disease; // the name of the disease, e.g. "pneumonia"
+  const date = req.body.date; // the prediction date, e.g. "2023-03-01 09:00:00"
+  const prediction = req.body.prediction; // the prediction result, "1" if disease, "0" otherwise
+  const description = req.body.description; // more description of this disease, like the subtype of this disease.
+  const accuracy = req.body.accuracy; // prediction accuracy, e.g. "90%"
+  const recordType = req.body.recordType; // the type of the health test, e.g. "X-Ray" or "ecg"
+  const recordId = req.body.recordId; // the id of the health test, e.g. "12", "640b68a96d5b6382c0a3df4c"
+
+  console.log("in update desiase post api ",phoneNumber,disease,date,prediction,description,accuracy,recordId,recordType);
+ 
+if (!phoneNumber || !disease || !date || !description) {
+      res.send({
+          error: "Missing patient phone number, disease, date, or prediction.",
+      });
+      return;
+  }
+
+  // Execute query
+  sql = `SELECT id FROM patients_registration WHERE MobileNumber = "${phoneNumber}"`;
+  try {
+      result = await mysql.query(sql);
+  } catch (error) {
+      console.log(error);
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+
+  // Check patient result;
+  if (result.length != 1) {
+      res.send({ error: "No patient matched in database." });
+      return;
+  }
+
+  let patient_id = result[0].id;
+
+  // Execute query
+  sql = `INSERT into ${disease} (patient_id, prediction_date, prediction, description, accuracy, record_type, record_id)
+  VALUES (${patient_id}, "${date}", "${prediction}", ${description ? '"' + description + '"' : "NULL"
+      }, ${accuracy ? '"' + accuracy + '"' : "NULL"}, ${recordType ? '"' + recordType + '"' : "NULL"
+      }, ${recordId ? '"' + recordId + '"' : "NULL"})
+  ON DUPLICATE KEY 
+  UPDATE prediction_date = "${date}", 
+  prediction = "${prediction}",
+  description = ${description ? '"' + description + '"' : "NULL"},
+  accuracy = ${accuracy ? '"' + accuracy + '"' : "NULL"},
+  record_type = ${recordType ? '"' + recordType + '"' : "NULL"},
+  record_id = ${recordId ? '"' + recordId + '"' : "NULL"};`;
+  try {
+      result = await mysql.query(sql);
+  } catch (error) {
+      console.log(error);
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+  res.send({ success: "Submit success." });
 });
 
 
