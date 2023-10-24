@@ -1,3 +1,7 @@
 # dependencies added now
 /node_modules
 /package-lock.json
+
+### Format1  ###
+node_modules/
+package-lock.json/
