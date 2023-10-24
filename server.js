@@ -148,7 +148,7 @@ app.post("/imageRetrieveByRecordId", async (req, res) => {
 // This API is for updating the ML prediction result to the database.
 app.post("/updateDisease", async (req, res) => {
   
-  const phoneNumber = req.body.phoneNumber; // the patient phone number, e.g. "6131230000"
+  const phoneNumber = req.body.phoneNumber; // the patient phone number, e.g. "6131230000" also we can use 6131230016
   const disease = req.body.disease; // the name of the disease, e.g. "pneumonia"
   const date = req.body.date; // the prediction date, e.g. "2023-03-01 09:00:00"
   const prediction = req.body.prediction; // the prediction result, "1" if disease, "0" otherwise
