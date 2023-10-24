@@ -9,4 +9,3 @@ router.get("/patients", userController.getAllPatients);
 
 
 module.exports = router;
-
