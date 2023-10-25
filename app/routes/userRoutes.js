@@ -7,6 +7,4 @@ const userController = require("../controllers/userController");
 router.get("/", userController.getAllUsers);
 router.get("/patients", userController.getAllPatients);
 
-
 module.exports = router;
-
