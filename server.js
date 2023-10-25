@@ -8,11 +8,10 @@ const corsOptions = {
   origin: "*", // Replace with your local React server's URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
+const { uri } = require("./app/models/mongodbConnection");
 
 const { MongoClient } = require("mongodb");
 
-const uri =
-  "mongodb+srv://ehuser:ehuser@ehospital.7enczr6.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
 
 app.use(cors(corsOptions));
@@ -22,8 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 var mysql = require("./app/models/dbConnection");
-const db = require("./db"); 
-db.sequelize.authenticate()
+const db = require("./db");
+db.sequelize
+  .authenticate()
   .then(() => {
     console.log("Database connection has been established successfully.");
   })
@@ -83,8 +83,8 @@ app.post("/searchpatient", (req, res) => {
   //console.log("in node searchpatient post api you searched for ",phoneNumber);
   // Check patient identity
   if (!phoneNumber) {
-      res.send({ error: "Missing patient phone number" });
-      return;
+    res.send({ error: "Missing patient phone number" });
+    return;
   }
   var patient_id = 0;
   var check_list = [];
@@ -96,32 +96,32 @@ app.post("/searchpatient", (req, res) => {
   `;
   console.log(sql);
   sqlDB.query(sql, (error, result) => {
-      if (error) {
-          res.send({ error: "Something wrong in MySQL." });
-          console.log("Something wrong in MySQL");
-          return;
-      }
-      if (result.length != 1) {
-          check_list[0] = 1;
-          // res.render('pages/searchpatient', {check:check_list});
-          res.send({ error: "No patient matched in database." });
-          
-          return;
-      }
-      patient_id = result[0].id;
-      sql_search_query = `SELECT * FROM patients_registration WHERE id = "${patient_id}"`;
-      let sqlDB = mysql.connect();
-      sqlDB.query(sql_search_query, function (err, result) {
-          if (err) throw err;
+    if (error) {
+      res.send({ error: "Something wrong in MySQL." });
+      console.log("Something wrong in MySQL");
+      return;
+    }
+    if (result.length != 1) {
+      check_list[0] = 1;
+      // res.render('pages/searchpatient', {check:check_list});
+      res.send({ error: "No patient matched in database." });
 
-          ///res.render() function
-         // res.send(result.id);
-          res.json(result[0]);
-          console.log(result[0]);
-      });
-      sqlDB.end();
-      
-      //console.log(sql_search_query);
+      return;
+    }
+    patient_id = result[0].id;
+    sql_search_query = `SELECT * FROM patients_registration WHERE id = "${patient_id}"`;
+    let sqlDB = mysql.connect();
+    sqlDB.query(sql_search_query, function (err, result) {
+      if (err) throw err;
+
+      ///res.render() function
+      // res.send(result.id);
+      res.json(result[0]);
+      console.log(result[0]);
+    });
+    sqlDB.end();
+
+    //console.log(sql_search_query);
   });
   sqlDB.end();
 });
@@ -133,37 +133,40 @@ app.post("/imageRetrieveByPhoneNumber", async (req, res) => {
 
   // Check parameters
   if (!phoneNumber) {
-      res.send({ error: "Missing patient phone number." });
-      console.log("Missing patient phone number.");
-      return;
+    res.send({ error: "Missing patient phone number." });
+    console.log("Missing patient phone number.");
+    return;
   }
   if (!recordType) {
-      res.send({ error: "Missing record type." });
-      console.log("Missing record type.");
+    res.send({ error: "Missing record type." });
+    console.log("Missing record type.");
 
-      return;
+    return;
   }
 
   // Execute query
   sql = `SELECT id FROM patients_registration WHERE MobileNumber = "${phoneNumber}"`;
   try {
-      result = await mysql.query(sql);
+    result = await mysql.query(sql);
   } catch (error) {
-      console.log(error,"Something wrong in MySQL." );
-      res.send({ error: "Something wrong in MySQL." });
-      return;
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
   }
 
   // Check patient result
   if (result.length != 1) {
-      res.send({ error: "No patient matched in database." });
-      console.log("No patient matched in database." );
-      return;
+    res.send({ error: "No patient matched in database." });
+    console.log("No patient matched in database.");
+    return;
   }
 
   let patient_id = result[0].id;
 
-  const MongoResult = await models.imageRetrieveByPatientId(patient_id, recordType);
+  const MongoResult = await models.imageRetrieveByPatientId(
+    patient_id,
+    recordType
+  );
   res.send(MongoResult);
 });
 
@@ -174,12 +177,12 @@ app.post("/imageRetrieveByRecordId", async (req, res) => {
 
   // Check parameters
   if (!_id) {
-      res.send({ error: "Missing record id." });
-      return;
+    res.send({ error: "Missing record id." });
+    return;
   }
   if (!recordType) {
-      res.send({ error: "Missing record type." });
-      return;
+    res.send({ error: "Missing record type." });
+    return;
   }
 
   const MongoResult = await models.imageRetrieveByRecordId(_id, recordType);
@@ -197,36 +200,38 @@ app.post("/updateDisease", async (req, res) => {
   const recordType = req.body.recordType; // the type of the health test, e.g. "X-Ray" or "ecg"
   const recordId = req.body.recordId; // the id of the health test, e.g. "12", "640b68a96d5b6382c0a3df4c"
 
-if (!phoneNumber || !disease || !date || !description) {
-      res.send({
-          error: "Missing patient phone number, disease, date, or prediction.",
-      });
-      return;
+  if (!phoneNumber || !disease || !date || !description) {
+    res.send({
+      error: "Missing patient phone number, disease, date, or prediction.",
+    });
+    return;
   }
 
   // Execute query
   sql = `SELECT id FROM patients_registration WHERE MobileNumber = "${phoneNumber}"`;
   try {
-      result = await mysql.query(sql);
+    result = await mysql.query(sql);
   } catch (error) {
-      console.log(error);
-      res.send({ error: "Something wrong in MySQL." });
-      return;
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
   }
 
   // Check patient result;
   if (result.length != 1) {
-      res.send({ error: "No patient matched in database." });
-      return;
+    res.send({ error: "No patient matched in database." });
+    return;
   }
 
   let patient_id = result[0].id;
 
   // Execute query
   sql = `INSERT into ${disease} (patient_id, prediction_date, prediction, description, accuracy, record_type, record_id)
-  VALUES (${patient_id}, "${date}", "${prediction}", ${description ? '"' + description + '"' : "NULL"
-      }, ${accuracy ? '"' + accuracy + '"' : "NULL"}, ${recordType ? '"' + recordType + '"' : "NULL"
-      }, ${recordId ? '"' + recordId + '"' : "NULL"})
+  VALUES (${patient_id}, "${date}", "${prediction}", ${
+    description ? '"' + description + '"' : "NULL"
+  }, ${accuracy ? '"' + accuracy + '"' : "NULL"}, ${
+    recordType ? '"' + recordType + '"' : "NULL"
+  }, ${recordId ? '"' + recordId + '"' : "NULL"})
   ON DUPLICATE KEY 
   UPDATE prediction_date = "${date}", 
   prediction = "${prediction}",
@@ -235,11 +240,11 @@ if (!phoneNumber || !disease || !date || !description) {
   record_type = ${recordType ? '"' + recordType + '"' : "NULL"},
   record_id = ${recordId ? '"' + recordId + '"' : "NULL"};`;
   try {
-      result = await mysql.query(sql);
+    result = await mysql.query(sql);
   } catch (error) {
-      console.log(error);
-      res.send({ error: "Something wrong in MySQL." });
-      return;
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
   }
   res.send({ success: "Submit success." });
 });
