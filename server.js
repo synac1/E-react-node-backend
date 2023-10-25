@@ -1,24 +1,28 @@
 const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
-const app = express();
+const chatRoutes = require("./app/routes/chatRouter");
+
+const expressWs = require('express-ws');
 const multer = require('multer');
 const corsOptions = {
  // origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com', 
   origin: '*', // Replace with your local React server's URL
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 };
+var mysql = require("./app/models/dbConnection");
+const db = require("./db"); 
 
 var models = require('./app/models/commonMethod');
-
+const app = express();
 app.use(cors(corsOptions));
+expressWs(app);
 
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-var mysql = require("./app/models/dbConnection");
-const db = require("./db"); 
+
 db.sequelize.authenticate()
   .then(() => {
     console.log("Database connection has been established successfully.");
@@ -33,6 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRoutes); // Mount user routes
+app.use("/api/chat",chatRoutes);
 
 app.post("/searchpatient", (req, res) => {
   
