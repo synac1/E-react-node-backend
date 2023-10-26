@@ -87,6 +87,27 @@ router.get("/getConversationIdByUserIdentity",async(req,res)=>{
 
 });
 
+router.get("/getChatHistoryByConversationId",async(req,res)=>{
+  const conversationId = req.query.conversationId;
+  console.log(conversationId);
+  let sql = `SELECT * FROM chat_table WHERE conversation_id = '${conversationId}'`;
+  try{
+    let result = await mysql.query(sql);
+    if(result.length!=0){
+      res.json(result);
+    }else{
+      res.send('no such conversation');
+    }
+  }catch(error){
+    console.log(error,"Something wrong in MySQL.");
+    res.send("server is busy");
+    return;
+  }
+
+});
+
+
+
 
 
 
