@@ -8,7 +8,9 @@ const corsOptions = {
   origin: "*", // Replace with your local React server's URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
-const { uri } = require("./app/models/mongodbConnection");
+const mongodbConfig = require("./app/config/mongodb.config");
+
+const uri = mongodbConfig.uri;
 
 const { MongoClient } = require("mongodb");
 
@@ -191,7 +193,7 @@ app.post("/imageRetrieveByRecordId", async (req, res) => {
 
 // This API is for updating the ML prediction result to the database.
 app.post("/updateDisease", async (req, res) => {
-  const phoneNumber = req.body.phoneNumber; // the patient phone number, e.g. "6131230000"
+  const phoneNumber = req.body.phoneNumber; // the patient phone number, e.g. "6131230000" also we can use 6131230016
   const disease = req.body.disease; // the name of the disease, e.g. "pneumonia"
   const date = req.body.date; // the prediction date, e.g. "2023-03-01 09:00:00"
   const prediction = req.body.prediction; // the prediction result, "1" if disease, "0" otherwise
@@ -248,6 +250,67 @@ app.post("/updateDisease", async (req, res) => {
   }
   res.send({ success: "Submit success." });
 });
+//--
+//API to get physicaltestckdata by patient_id
+app.post("/getPhysicaltestCK", async (req, res) => {
+  const patientID = req.body.patientId; //patient ID
+  if (!patientID) {
+    res.send({ error: "Missing patient ID." });
+    console.log("Missing patient ID.");
+    return;
+  }
+  // Execute query
+  sql = `SELECT * FROM physical_test_ck
+            WHERE patient_id = "${patientID}" 
+            order by recordDate desc limit 1`;
+
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  // Check patient result
+  if (result.length <= 0) {
+    res.send({ error: "No patient matched in database." });
+    console.log("No patient matched in database.");
+    return;
+  }
+  const response_for_request = {
+    record_id: result[0].id,
+    record_date: result[0].RecordDate,
+    data: [
+      result[0].age,
+      result[0].blood_pressure,
+      result[0].specific_gravity,
+      result[0].albumin,
+      result[0].sugar,
+      result[0].red_blood_cells,
+      result[0].pus_cell,
+      result[0].pus_cell_clumps,
+      result[0].bacteria,
+      result[0].blood_glucose_random,
+      result[0].blood_urea,
+      result[0].serum_creatinine,
+      result[0].sodium,
+      result[0].potassium,
+      result[0].haemoglobin,
+      result[0].packed_cell_volume,
+      result[0].white_blood_cell_count,
+      result[0].red_blood_cell_count,
+      result[0].hypertension,
+      result[0].diabetes_mellitus,
+      result[0].coronary_artery_disease,
+      result[0].appetite,
+      result[0].peda_edema,
+      result[0].aanemia,
+    ],
+  };
+  console.log(response_for_request);
+  res.json(response_for_request);
+});
+//----
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
