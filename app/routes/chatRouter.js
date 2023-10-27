@@ -10,7 +10,9 @@ expressWs(router);
 const connections = new Set();
 router.ws('/sendMessage',(ws,req)=>{
     ws.on('message',async(message)=>{
+        let sql3 = null;
         let conversationId = null;
+        let name = null;
         connections.add(ws);
         const parsedMessage = JSON.parse(message);
         //identity refers to sender identity
@@ -24,6 +26,11 @@ router.ws('/sendMessage',(ws,req)=>{
           };
           let sql1 = `SELECT conversation_id FROM chat_table WHERE sender = ${chatMessage.receiver} and sender_identity = '${chatMessage.receiverIdentity}' LIMIT 1 `;
           let sql2 = `SELECT conversation_id FROM chat_table WHERE sender = ${chatMessage.sender} and sender_identity = '${chatMessage.senderIdentity}' LIMIT 1 `;
+          if(senderIdentity='patient'){
+             sql3 = `SELECT FName,MName,LName FROM patients_registration WHERE id = ${chatMessage.sender} `;
+          }else{
+             sql3 = `SELECT FName,MName,LName FROM doctor_registration WHERE id = ${chatMessage.sender} `;
+          }
           try {
             let result1 = await mysql.query(sql1);
             let result2 = await mysql.query(sql2);
@@ -33,11 +40,13 @@ router.ws('/sendMessage',(ws,req)=>{
                 mysql.query(sql);
             }else{
               let res = result1.length==0? result2:result1;
-              console.log(res);
               conversationId = res[0].conversation_id;
               let sql = `INSERT into chat_table (conversation_id, sender, receiver, sender_identity, receiver_identity, time, message) VALUES ('${conversationId}', ${chatMessage.sender}, ${chatMessage.receiver},'${chatMessage.senderIdentity}', '${chatMessage.receiverIdentity}', '${chatMessage.timestamp}', '${chatMessage.message}');`;
               await mysql.query(sql);
             }
+            let result3 = await mysql.query(sql3);
+            name = result3[0].FName+result3[0].MName+result3[0].LName;
+            
           } catch (error) {
             console.log(error,"Something wrong in MySQL." );
             connections.forEach((client) => {
@@ -51,7 +60,8 @@ router.ws('/sendMessage',(ws,req)=>{
             if (client.readyState === 1) {
               let chatInfo = {
                 chatMessage:chatMessage,
-                conversationId:conversationId
+                conversationId:conversationId,
+                name:name
               }
               client.send(JSON.stringify(chatInfo));
             }
@@ -105,6 +115,34 @@ router.get("/getChatHistoryByConversationId",async(req,res)=>{
   }
 
 });
+
+router.get("/getChatList",async(req,res)=>{
+  const userId = req.query.userId;
+  const userIdentity = req.query.userIdentity;
+  let sql1 = `SELECT * FROM chat_table WHERE sender = ${userId} and sender_identity = '${userIdentity}'`;
+  let sql2 = `SELECT * FROM chat_table WHERE receiver = ${userId} and receiver_identity = '${userIdentity}'`;
+  try{
+    let result1 = await mysql.query(sql1);
+    console.log(result1);
+    let result2 = await mysql.query(sql2);
+    let set = new Set();
+    let res = result1.filter(function(item){
+      if(set.has(item.sender_identity+item.sender.toString())){
+        return false;
+      }else{
+        set.add(item.sender_identity+item.sender.toString());
+        return true;
+      }
+    });
+    console.log(set);
+    console.log(res);
+
+  }catch(error){
+    console.log(error,"Something wrong in MySQL.");
+    res.send("server is busy");
+    return;
+  }
+})
 
 
 
