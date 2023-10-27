@@ -20,6 +20,4 @@ router.post("/HospitalAdminRegistration",(req,res) =>{hospitalAdminRegistration.
 router.post("/LabAdminRegistration",(req,res) =>{labAdminRegistration.handelSubmit(req,res,db,bcrypt)})
 router.post("/LabApp",(req,res) =>{labApp.handelSubmit(req,res,db,bcrypt)})
 
-
 module.exports = router;
-
