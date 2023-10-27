@@ -8,22 +8,23 @@ const corsOptions = {
   origin: "*", // Replace with your local React server's URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
+var models = require('./app/models/commonMethod');
+var mysql = require("./app/models/dbConnection");
+const db = require("./db");
+
+app.use("/api/users", userRoutes); // Mount user routes
+
+
 const mongodbConfig = require("./app/config/mongodb.config");
-
 const uri = mongodbConfig.uri;
-
 const { MongoClient } = require("mongodb");
-
 const client = new MongoClient(uri);
 
 app.use(cors(corsOptions));
-
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-var mysql = require("./app/models/dbConnection");
-const db = require("./db");
 db.sequelize
   .authenticate()
   .then(() => {
@@ -38,6 +39,11 @@ app.get("/", (req, res) => {
   res.send("Welcome to your server!");
 });
 
+
+//New Api's start from here
+
+
+//shake waseef code 
 app.get("/skinCancerData/:id", async (req, res) => {
   const id = req.params.id;
   const db = client.db("htdata");
@@ -78,7 +84,7 @@ app.post("/skinCancerData/:id", async (req, res) => {
   }
 });
 
-app.use("/api/users", userRoutes); // Mount user routes
+
 
 app.post("/searchpatient", (req, res) => {
   const phoneNumber = req.body.phoneNumber; // patient phone number, e.g. "6131230000"
