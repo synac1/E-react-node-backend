@@ -121,12 +121,10 @@ router.get("/getChatList",async(req,res)=>{
   try{
     let sql = `SELECT * FROM doctor_recordauthorized  WHERE doctor_id = ${doctorId}`;
     let result = await mysql.query(sql);
-    let patientIdArr = result.forEach((item)=>{
+    let patientIdArr = result.map((item,index)=>{
       return item.patient_id;
     });
-    console.log(patientIdArr);
-
-
+    res.json(patientIdArr);
   }catch(error){
     console.log(error,"Something wrong in MySQL.");
     res.send("server is busy");
