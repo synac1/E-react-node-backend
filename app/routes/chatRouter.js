@@ -117,25 +117,15 @@ router.get("/getChatHistoryByConversationId",async(req,res)=>{
 });
 
 router.get("/getChatList",async(req,res)=>{
-  const userId = req.query.userId;
-  const userIdentity = req.query.userIdentity;
-  let sql1 = `SELECT * FROM chat_table WHERE sender = ${userId} and sender_identity = '${userIdentity}'`;
-  let sql2 = `SELECT * FROM chat_table WHERE receiver = ${userId} and receiver_identity = '${userIdentity}'`;
+  const doctorId = req.query.doctorId;
   try{
-    let result1 = await mysql.query(sql1);
-    console.log(result1);
-    let result2 = await mysql.query(sql2);
-    let set = new Set();
-    let res = result1.filter(function(item){
-      if(set.has(item.sender_identity+item.sender.toString())){
-        return false;
-      }else{
-        set.add(item.sender_identity+item.sender.toString());
-        return true;
-      }
+    let sql = `SELECT * FROM doctor_recordauthorized  WHERE doctor_id = ${doctorId}`;
+    let result = await mysql.query(sql);
+    let patientIdArr = result.forEach((item)=>{
+      return item.patient_id;
     });
-    console.log(set);
-    console.log(res);
+    console.log(patientIdArr);
+
 
   }catch(error){
     console.log(error,"Something wrong in MySQL.");
