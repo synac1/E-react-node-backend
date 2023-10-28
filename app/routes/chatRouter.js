@@ -116,15 +116,20 @@ router.get("/getChatHistoryByConversationId",async(req,res)=>{
 
 });
 
-router.get("/getChatList",async(req,res)=>{
+router.get("/getDoctorChatList",async(req,res)=>{
+  console.log(111);
   const doctorId = req.query.doctorId;
   try{
     let sql = `SELECT * FROM doctor_recordauthorized  WHERE doctor_id = ${doctorId}`;
     let result = await mysql.query(sql);
     let patientIdArr = result.map((item,index)=>{
+      
       return item.patient_id;
     });
-    res.json(patientIdArr);
+    console.log(patientIdArr);
+    let sql2 = `SELECT * FROM patients_registration  WHERE id in (${patientIdArr.join(', ')})`;
+    let result2 = await mysql.query(sql2);
+    res.json(result2);
   }catch(error){
     console.log(error,"Something wrong in MySQL.");
     res.send("server is busy");
