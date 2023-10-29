@@ -10,6 +10,7 @@ const labAdminRegistration = require('../controllers/LabAdminRegistration')
 const labApp = require('../controllers/LabApp')
 const userController = require("../controllers/userController");
 const db = require('../../db_login')
+const specialitiesController = require("../controllers/specialitiesController");
 
 router.get("/", userController.getAllUsers);
 router.get("/patients", userController.getAllPatients);
@@ -19,7 +20,6 @@ router.post("/DoctorRegistration",(req,res) =>{doctorRegistration.handelSubmit(r
 router.post("/HospitalAdminRegistration",(req,res) =>{hospitalAdminRegistration.handelSubmit(req,res,db,bcrypt)})
 router.post("/LabAdminRegistration",(req,res) =>{labAdminRegistration.handelSubmit(req,res,db,bcrypt)})
 router.post("/LabApp",(req,res) =>{labApp.handelSubmit(req,res,db,bcrypt)})
-
+router.get("/specialities", specialitiesController.getAllSpecialities);
 
 module.exports = router;
-

@@ -4,26 +4,26 @@ const uri = mongodbConfig.uri;
 const client = new MongoClient(uri);
 
 try {
-    // Connect to the MongoDB cluster
-    client.connect();
-    testConnection();
-    // findImageById("files1", "63ec4d0bf7e2456aaff8347c");
+  // Connect to the MongoDB cluster
+  client.connect();
+  testConnection();
+  // findImageById("files1", "63ec4d0bf7e2456aaff8347c");
 } catch (e) {
-    console.log('Cannot connect to the Mongo DB server.');
-    console.error(e);
+  console.log("Cannot connect to the Mongo DB server.");
+  console.error(e);
 }
 
 module.exports = {
-    getDb: function () {
-      return client.db("htdata");
-    }
+  getDb: function () {
+    return client.db("htdata");
+  },
 };
 
-async function testConnection(){
-    databasesList = await client.db().admin().listDatabases();
-    console.log("Connected to the Mongo Database");
-    // databasesList.databases.forEach(db => console.log(` - ${db.name}`));
-};
+async function testConnection() {
+  databasesList = await client.db().admin().listDatabases();
+  console.log("Connected to the Mongo Database");
+  // databasesList.databases.forEach(db => console.log(` - ${db.name}`));
+}
 
 // async function createNewImage(collectionName, image){
 //     const result = await client.db("db1").collection(collectionName).insertOne(image);
