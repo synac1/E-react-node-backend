@@ -5,8 +5,10 @@ const mysql = require("../models/dbConnection");
 const uuid = require("uuid");
 const { json } = require("sequelize");
 const WebSocket = require('ws');
+
 expressWs(router);
 
+let num = 0;
 const connections = new Set();
 router.ws('/sendMessage',(ws,req)=>{
     ws.on('message',async(message)=>{
@@ -155,6 +157,28 @@ router.get("/getPatientChatList",async(req,res)=>{
   }
 });
 
+router.get("/getCurrentId",async(req,res)=>{
+  console.log(num);
+  let identity = null;
+  if (num % 2 === 0) {
+    identity  = 'docotr';
+} else {
+    identity = 'patient';
+}
+  num = num+1;
+  let info = null;
+  if(identity == 'doctor'){
+    let sql = `SELECT * FROM doctors_registration  WHERE id=58`
+    info = await mysql.query(sql);
+  }else{
+    let sql = `SELECT * FROM patients_registration  WHERE id=25`
+    info = await mysql.query(sql);
+  }
+  res.json({
+    identity:identity,
+    info:info[0]
+  });
+});
 
 
 
