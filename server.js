@@ -447,7 +447,9 @@ app.post("/DoctorProfileInfo", async (req, res) => {
   }
    //query
    sql = `
-      select a.FName, a.LName,a.Age, a.MobileNumber, a.EmailId, a.Medical_LICENSE_Number,a.Specialization,a.City, count(b.doctor_id = 58) as active_patients
+      select a.FName, a.LName,a.Age, a.MobileNumber, a.EmailId,
+      a.Medical_LICENSE_Number,a.Specialization,a.City, 
+      count(b.doctor_id ="${doctorID}") as active_patients
       from  doctors_registration as a, doctor_recordauthorized  as b
       where a.id="${doctorID}" and a.id=b.doctor_id;       
    `;
