@@ -11,19 +11,17 @@ const corsOptions = {
 var models = require('./app/models/commonMethod');
 var mysql = require("./app/models/dbConnection");
 const db = require("./db");
-
-
-
 const mongodbConfig = require("./app/config/mongodb.config");
 const uri = mongodbConfig.uri;
 const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
-
 app.use(cors(corsOptions));
-app.use(cors());
+// app.use(cors());
+app.use("/api/users", userRoutes); // Mount user routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes); // Mount user routes
+
 
 db.sequelize
   .authenticate()
