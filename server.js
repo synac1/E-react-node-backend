@@ -13,7 +13,7 @@ var models = require('./app/models/commonMethod');
 
 app.use(cors(corsOptions));
 
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -267,7 +267,54 @@ app.post("/getPhysicaltestCK", async (req, res) => {
     res.json(response_for_request);
 }
 )
-//----
+//API to get liverdisease data by patient_id
+app.post("/liver_disease", async (req, res) => {
+    const patientID = req.body.patientId //patient ID
+    if(!patientID) {
+        res.send({ error: "Missing patient ID." });
+        console.log("Missing patient ID.");
+        return;
+    }
+     // Execute query
+    sql = `SELECT * FROM liver_disease
+            WHERE patients_id = "${patientID}" 
+            order by recordtime desc limit 1`;
+
+    try {
+        result = await mysql.query(sql);
+    } catch (error) {
+      console.log(error,"Something wrong in MySQL---." );
+      res.send({ error: "Something wrong in MySQL---." });
+      return;
+    }
+      // Check patient result
+    if (result.length <=0) {
+        res.send({ error: "No patient matched in database." });
+        console.log("No patient matched in database." );
+        return;
+    }
+    const response_for_request =
+    {   "record_id": result[0].patients_id,
+        "record_date":result[0].recordtime,
+        "data":
+        [
+            result[0].custom_age,
+            result[0].Total_Bilirubin,
+            result[0].Direct_Bilirubin,
+            result[0].Alkaline_Phosphotase,
+            result[0].Alamine_Aminotransferase,
+            result[0].Aspartate_Aminotransferase,
+            result[0].Total_Protiens,
+            result[0].Albumin,
+            result[0].Albumin_and_Globulin_Ratio,
+            result[0].Gender_Female,
+            result[0].Gender_Male,
+        ]
+    }
+    console.log(response_for_request);
+    res.json(response_for_request);
+}
+)
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
