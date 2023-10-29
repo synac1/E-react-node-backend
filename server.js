@@ -16,10 +16,9 @@ const uri = mongodbConfig.uri;
 const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
 app.use(cors(corsOptions));
-// app.use(cors());
-app.use("/api/users", userRoutes); // Mount user routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/users", userRoutes); // Mount user routes
 
 
 db.sequelize
@@ -313,7 +312,66 @@ app.post("/getPhysicaltestCK", async (req, res) => {
   console.log(response_for_request);
   res.json(response_for_request);
 });
-//----
+//---------------------Thyroid Disease API ------------------------
+app.post("/getThyroidDiseaseData", async (req, res) => {
+  const patientID = req.body.patientId; //patient ID
+  if (!patientID) {
+    res.send({ error: "Missing patient ID." });
+    console.log("Missing patient ID.");
+    return;
+  }
+  
+  // Execute query
+  let sql = `SELECT * FROM nkw2tiuvgv6ufu1z.thyroid_disease 
+            WHERE patient_id = "${patientID}" 
+            order by id desc limit 1`;  // Assuming you have a field to order by. Adjust if needed.
+
+  let result;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  
+  // Check patient result
+  if (result.length <= 0) {
+    res.send({ error: "No patient matched in database." });
+    console.log("No patient matched in database.");
+    return;
+  }
+  
+  const response_for_request = {
+    record_id: result[0].id,
+    data: {
+      age: result[0].age,
+      sex: result[0].sex,
+      TSH: result[0].TSH,
+      T3: result[0].T3,
+      T4U: result[0].T4U,
+      FTI: result[0].FTI,
+      onthyroxine: result[0].onthyroxine,
+      queryonthyroxine: result[0].queryonthyroxine,
+      onantithyroidmedication: result[0].onantithyroidmedication,
+      sick: result[0].sick,
+      pregnant: result[0].pregnant,
+      thyroidsurgery: result[0].thyroidsurgery,
+      I131treatment: result[0].I131treatment,
+      queryhypothyroid: result[0].queryhypothyroid,
+      queryhyperthyroid: result[0].queryhyperthyroid,
+      lithium: result[0].lithium,
+      goitre: result[0].goitre,
+      tumor: result[0].tumor,
+      hypopituitary: result[0].hypopituitary,
+      psych: result[0].psych,
+      //result: result[0].result
+    }
+  };
+
+  console.log(response_for_request);
+  res.json(response_for_request);
+});
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
