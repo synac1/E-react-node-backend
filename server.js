@@ -387,7 +387,7 @@ app.post("/getThyroidDiseaseData", async (req, res) => {
   
   // Execute query
   let sql = `SELECT * FROM nkw2tiuvgv6ufu1z.thyroid_disease 
-            WHERE patient_id = "${patientID}" 
+            WHERE id = "${patientID}" 
             order by id desc limit 1`;  // Assuming you have a field to order by. Adjust if needed.
 
   let result;
