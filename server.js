@@ -16,6 +16,7 @@ const uri = mongodbConfig.uri;
 const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
 app.use(cors(corsOptions));
+
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -276,8 +277,8 @@ app.post("/getPhysicaltestCK", async (req, res) => {
   }
   // Check patient result
   if (result.length <= 0) {
-    res.send({ error: "No patient matched in database." });
     console.log("No patient matched in database.");
+    res.send({ error: "No patient matched in database." });
     return;
   }
   const response_for_request = {
@@ -314,7 +315,162 @@ app.post("/getPhysicaltestCK", async (req, res) => {
   res.json(response_for_request);
 });
 //----
+//top_five_recent_patients_per_doctor
+app.post("/TopFiveRecentPatients", async (req, res) => {
+ // console.log("got here here");
+  const doctorID = req.body.doctorId;
+  if (!doctorID ) {
+    res.send({ error: "Missing Doctor ID." });
+    console.log("Missing Doctor ID.");
+    return;
+  }
+   //query
+   sql = `select  DS.service_date, P.id, P.Fname as  PatientFName, P.LName as PatientLName
+   from  patients_registration as P, doctor_servicehistory as DS
+   where DS.doctor_id ="${doctorID}" and DS.patient_id = P.id
+   order by service_date desc 
+   limit 5;`;
+   //execute
+   try {
+    result = await mysql.query(sql);
+    } catch (error) {
+      console.log(error, "Something wrong in MySQL.");
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+  if (result.length==0){
+    res.send({ error: "No records found." });
+    return;
+  }
+  res.json(result);
+}
+)
+//----
+//Patients_authorized_per_doctor
+app.post("/DoctorPatientsAuthorized", async (req, res) => {
+  //console.log("docrecordauthorized");
+  const doctorID = req.body.doctorId;
+  if (!doctorID ) {
+    res.send({ error: "Missing Doctor ID." });
+    console.log("Missing Doctor ID.");
+    return;
+  }
+   //query
+   sql = `
+          select DA.patient_id as id, P.FName, P.LName, P.MobileNumber, substr(P.MName,1,1) as MI, 
+          P.Age, P.Gender, P.weight
+          from  doctor_recordauthorized  as DA,  patients_registration as P
+          where DA.doctor_id = "${doctorID}" and DA.patient_id = P.id;`;
+   //execute
+   try {
+    result = await mysql.query(sql);
+    } catch (error) {
+      console.log(error, "Something wrong in MySQL.");
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+  if (result.length==0){
+    res.send({ error: "No records found." });
+    return;
+  }
+  res.json(result);
+}
+)
+//---------------------Thyroid Disease API ------------------------
+app.post("/getThyroidDiseaseData", async (req, res) => {
+  const patientID = req.body.patientId; //patient ID
+  if (!patientID) {
+    res.send({ error: "Missing patient ID." });
+    console.log("Missing patient ID.");
+    return;
+  }
+  
+  // Execute query
+  let sql = `SELECT * FROM nkw2tiuvgv6ufu1z.thyroid_disease 
+            WHERE patient_id = "${patientID}" 
+            order by id desc limit 1`;  // Assuming you have a field to order by. Adjust if needed.
 
+  let result;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  
+  // Check patient result
+  if (result.length <= 0) {
+    res.send({ error: "No patient matched in database." });
+    console.log("No patient matched in database.");
+    return;
+  }
+  
+  const response_for_request = {
+    record_id: result[0].id,
+    data: {
+      age: result[0].age,
+      sex: result[0].sex,
+      TSH: result[0].TSH,
+      T3: result[0].T3,
+      T4U: result[0].T4U,
+      FTI: result[0].FTI,
+      onthyroxine: result[0].onthyroxine,
+      queryonthyroxine: result[0].queryonthyroxine,
+      onantithyroidmedication: result[0].onantithyroidmedication,
+      sick: result[0].sick,
+      pregnant: result[0].pregnant,
+      thyroidsurgery: result[0].thyroidsurgery,
+      I131treatment: result[0].I131treatment,
+      queryhypothyroid: result[0].queryhypothyroid,
+      queryhyperthyroid: result[0].queryhyperthyroid,
+      lithium: result[0].lithium,
+      goitre: result[0].goitre,
+      tumor: result[0].tumor,
+      hypopituitary: result[0].hypopituitary,
+      psych: result[0].psych,
+      //result: result[0].result
+    }
+  };
+
+  console.log(response_for_request);
+  res.json(response_for_request);
+});
+
+//--- Important Info for doctor profile
+//Patients_authorized_per_doctor
+app.post("/DoctorProfileInfo", async (req, res) => {
+  //console.log("docrecordauthorized");
+  const doctorID = req.body.doctorId;
+  if (!doctorID ) {
+    res.send({ error: "Missing Doctor ID." });
+    console.log("Missing Doctor ID.");
+    return;
+  }
+   //query
+   sql = `
+      select a.FName, a.LName,a.Age, a.MobileNumber, a.EmailId,
+      a.Medical_LICENSE_Number,a.Specialization,a.City, 
+      count(b.doctor_id ="${doctorID}") as active_patients
+      from  doctors_registration as a, doctor_recordauthorized  as b
+      where a.id="${doctorID}" and a.id=b.doctor_id;       
+   `;
+   //execute
+   try {
+    result = await mysql.query(sql);
+    } catch (error) {
+      console.log(error, "Something wrong in MySQL.");
+      res.send({ error: "Something wrong in MySQL." });
+      return;
+  }
+  if (result.length==0){
+    res.send({ error: "No records found." });
+    return;
+  }
+  res.json(result[0]);
+}
+)
+//---Ending  DocProfile
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
