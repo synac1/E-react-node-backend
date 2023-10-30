@@ -511,6 +511,40 @@ app.post("/getBreastCancerData", (req, res) => {
 });
 //---------------------Breast cancer API end ------------------------
 
+/**
+ * Heart Stroke Data Endpoint
+ **/
+app.get('/heartstroke/:patientId', async (req, res, nxt) => {
+  const { patientId } = req.params;
+
+  strokesql = `SELECT * FROM heart_stroke
+          WHERE patient_id = "${patientId}" 
+          limit 1`;
+      
+  patientsql = `SELECT Gender as gender, Age as age FROM patients_registration
+          WHERE id = "${patientId}" 
+          limit 1`;
+
+  let strokeData = null;
+  let patientData = null;
+  try {
+      strokeData = await mysql.query(strokesql);
+      patientData = await mysql.query(patientsql);
+  } catch (error) {
+      return res.status(500).send({ error: "Something wrong in MySQL" });
+  }
+
+  if (!strokeData || !patientData) {
+      return res.status(404).send({ error: "No patient matched in database." });
+  }
+  
+  return res.json({...strokeData[0], ...patientData[0]});
+});
+
+/**
+ * Heart Stroke Data Endpoint ends
+ **/
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
