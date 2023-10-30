@@ -9,6 +9,7 @@ const hospitalAdminRegistration = require('../controllers/HospitalAdminRegistrat
 const labAdminRegistration = require('../controllers/LabAdminRegistration')
 const labApp = require('../controllers/LabApp')
 const userController = require("../controllers/userController");
+const contactController = require("../controllers/contactController");
 const db = require('../../db_login')
 const specialitiesController = require("../controllers/specialitiesController");
 
@@ -21,5 +22,7 @@ router.post("/HospitalAdminRegistration",(req,res) =>{hospitalAdminRegistration.
 router.post("/LabAdminRegistration",(req,res) =>{labAdminRegistration.handelSubmit(req,res,db,bcrypt)})
 router.post("/LabApp",(req,res) =>{labApp.handelSubmit(req,res,db,bcrypt)})
 router.get("/specialities", specialitiesController.getAllSpecialities);
+router.get("/contact", contactController.getContactUs);
+
 
 module.exports = router;
