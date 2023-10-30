@@ -431,103 +431,11 @@ app.post("/getThyroidDiseaseData", async (req, res) => {
       psych: result[0].psych,
       //result: result[0].result
     }
-<<<<<<< HEAD
-      // Check patient result
-    if (result.length <=0) {
-        res.send({ error: "No patient matched in database." });
-        console.log("No patient matched in database." );
-        return;
-    }
-    const response_for_request =
-    {   "record_id": result[0].id,
-        "record_date":result[0].RecordDate,
-        "data":
-        [
-            result[0].age,
-            result[0].blood_pressure,
-            result[0].specific_gravity,
-            result[0].albumin,
-            result[0].sugar,
-            result[0].red_blood_cells,
-            result[0].pus_cell,
-            result[0].pus_cell_clumps,
-            result[0].bacteria,
-            result[0].blood_glucose_random,
-            result[0].blood_urea,
-            result[0].serum_creatinine,
-            result[0].sodium,
-            result[0].potassium,
-            result[0].haemoglobin,
-            result[0].packed_cell_volume,
-            result[0].white_blood_cell_count,
-            result[0].red_blood_cell_count,
-            result[0].hypertension,
-            result[0].diabetes_mellitus,
-            result[0].coronary_artery_disease,
-            result[0].appetite,
-            result[0].peda_edema,
-            result[0].aanemia
-        ]
-    }
-    console.log(response_for_request);
-    res.json(response_for_request);
-}
-)
-//API to get liverdisease data by patient_id
-app.post("/liver_disease", async (req, res) => {
-    const patientID = req.body.patientId //patient ID
-    if(!patientID) {
-        res.send({ error: "Missing patient ID." });
-        console.log("Missing patient ID.");
-        return;
-    }
-     // Execute query
-    sql = `SELECT * FROM liver_disease
-            WHERE patients_id = "${patientID}" 
-            order by recordtime desc limit 1`;
-
-    try {
-        result = await mysql.query(sql);
-    } catch (error) {
-      console.log(error,"Something wrong in MySQL---." );
-      res.send({ error: "Something wrong in MySQL---." });
-      return;
-    }
-      // Check patient result
-    if (result.length <=0) {
-        res.send({ error: "No patient matched in database." });
-        console.log("No patient matched in database." );
-        return;
-    }
-    const response_for_request =
-    {   "record_id": result[0].patients_id,
-        "record_date":result[0].recordtime,
-        "data":
-        [
-            result[0].custom_age,
-            result[0].Total_Bilirubin,
-            result[0].Direct_Bilirubin,
-            result[0].Alkaline_Phosphotase,
-            result[0].Alamine_Aminotransferase,
-            result[0].Aspartate_Aminotransferase,
-            result[0].Total_Protiens,
-            result[0].Albumin,
-            result[0].Albumin_and_Globulin_Ratio,
-            result[0].Gender_Female,
-            result[0].Gender_Male,
-        ]
-    }
-    console.log(response_for_request);
-    res.json(response_for_request);
-}
-)
-=======
   };
 
   console.log(response_for_request);
   res.json(response_for_request);
 });
->>>>>>> main
 
 //--- Important Info for doctor profile
 //Patients_authorized_per_doctor
@@ -603,8 +511,58 @@ app.post("/getBreastCancerData", (req, res) => {
 });
 //---------------------Breast cancer API end ------------------------
 
+// -------------------Liver Preidiction API -------------------------//
+app.post("/liver_disease", async (req, res) => {
+    const patientID = req.body.patientId //patient ID
+    if(!patientID) {
+        res.send({ error: "Missing patient ID." });
+        console.log("Missing patient ID.");
+        return;
+    }
+     // Execute query
+    sql = `SELECT * FROM liver_disease
+            WHERE patients_id = "${patientID}" 
+            order by recordtime desc limit 1`;
+
+    try {
+        result = await mysql.query(sql);
+    } catch (error) {
+      console.log(error,"Something wrong in MySQL---." );
+      res.send({ error: "Something wrong in MySQL---." });
+      return;
+    }
+      // Check patient result
+    if (result.length <=0) {
+        res.send({ error: "No patient matched in database." });
+        console.log("No patient matched in database." );
+        return;
+    }
+    const response_for_request =
+    {   "record_id": result[0].patients_id,
+        "record_date":result[0].recordtime,
+        "data":
+        [
+            result[0].custom_age,
+            result[0].Total_Bilirubin,
+            result[0].Direct_Bilirubin,
+            result[0].Alkaline_Phosphotase,
+            result[0].Alamine_Aminotransferase,
+            result[0].Aspartate_Aminotransferase,
+            result[0].Total_Protiens,
+            result[0].Albumin,
+            result[0].Albumin_and_Globulin_Ratio,
+            result[0].Gender_Female,
+            result[0].Gender_Male,
+        ]
+    }
+    console.log(response_for_request);
+    res.json(response_for_request);
+}
+)
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 //please do comments before and after your code part for better readibility.
+//API to get liverdisease data by patient_id
