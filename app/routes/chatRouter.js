@@ -161,7 +161,7 @@ router.get("/getCurrentId",async(req,res)=>{
   console.log(num);
   let identity = null;
   if (num % 2 === 0) {
-    identity  = 'docotr';
+    identity  = 'doctor';
 } else {
     identity = 'patient';
 }
