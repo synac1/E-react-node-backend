@@ -3,8 +3,12 @@
 const handelLogin = (req,res,db,bcrypt)=>{
     const {email , password, selectedOption} = req.body;
     if(!email || !password){
-        db.select('Fname').from('nurses_registration').where('id','=',1).then(data =>{console.log(data)});
+        db.select('Fname').from('nurses_registration').where('id','=',1).then(data =>{console.log(typeof(data[0].Fname))});
         return res.status(400).json('incorrect form submission');
+   }
+
+   if(selectedOption === 'Admin'){
+    db.select('email').from('admins').where('email','=',email).then(da)
    }
     db.select('email','hash').from('login')
     .where('email','=',email)

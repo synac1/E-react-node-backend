@@ -17,9 +17,9 @@ const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
 app.use(cors(corsOptions));
 // app.use(cors());
-app.use("/api/users", userRoutes); // Mount user routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/users", userRoutes); // Mount user routes
 
 
 db.sequelize
