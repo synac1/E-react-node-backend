@@ -469,6 +469,46 @@ app.post("/DoctorProfileInfo", async (req, res) => {
 }
 )
 //---Ending  DocProfile
+
+//---------------------Breast cancer API start------------------------
+app.post("/getBreastCancerData", (req, res) => {
+
+  console.log(req)
+
+  const patient_id = req.body.patient_id; // patient id, e.g. "133"
+
+  // Check patient identity
+  if (!patient_id) {
+      res.send({ error: "Missing patient id" });
+      return;
+  }
+  var check_list = [];
+  let sqlDB = mysql.connect();
+  sql = `
+      SELECT *
+      FROM breast_cancer_details 
+      WHERE patient_id = "${patient_id}"
+  `;
+  console.log(sql);
+  sqlDB.query(sql, (error, result) => {
+      if (error) {
+          res.send({ error: "Something wrong in MySQL." });
+          console.log("Something wrong in MySQL");
+          return;
+      }
+      if (result.length != 1) {
+          check_list[0] = 1;
+          res.send({ error: "No patient matched in database." });
+          return;
+      }
+
+      res.json(result[0]);
+      console.log(result[0]);
+  });
+  sqlDB.end();
+});
+//---------------------Breast cancer API end ------------------------
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
