@@ -167,13 +167,20 @@ router.get("/getCurrentId",async(req,res)=>{
 }
   num = num+1;
   let info = null;
-  if(identity == 'doctor'){
-    let sql = `SELECT * FROM doctors_registration  WHERE id=58`
-    info = await mysql.query(sql);
-  }else{
-    let sql = `SELECT * FROM patients_registration  WHERE id=25`
-    info = await mysql.query(sql);
+  try{
+    if(identity == 'doctor'){
+      let sql = `SELECT * FROM doctors_registration  WHERE id=58`
+      info = await mysql.query(sql);
+    }else{
+      let sql = `SELECT * FROM patients_registration  WHERE id=132`
+      info = await mysql.query(sql);
+    }
+  }catch(error){
+    console.log(error,"Something wrong in MySQL.");
+    res.send("server is busy");
+    return;
   }
+
   res.json({
     identity:identity,
     info:info[0]
