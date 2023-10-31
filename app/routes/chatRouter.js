@@ -80,12 +80,12 @@ router.get("/getConversationIdByUserIdentity",async(req,res)=>{
   const senderIdentity = req.query.senderIdentity;
   const receiver = req.query.receiver;
   const receiverIdentity = req.query.receiverIdentity;
-  console.log(sender);
+  // console.log(sender);
   let sql = `SELECT conversation_id FROM chat_table WHERE sender = ${sender} and sender_identity = '${senderIdentity}' and receiver =${receiver} and receiver_identity='${receiverIdentity}' LIMIT 1 `;
-  console.log(sql);
+  // console.log(sql);
   try{
     let result = await mysql.query(sql);
-    console.log(result);
+    // console.log(result);
     if(result.length!=0){
       res.json(result[0]);
     }else{
@@ -101,7 +101,7 @@ router.get("/getConversationIdByUserIdentity",async(req,res)=>{
 
 router.get("/getChatHistoryByConversationId",async(req,res)=>{
   const conversationId = req.query.conversationId;
-  console.log(conversationId);
+  // console.log(conversationId);
   let sql = `SELECT * FROM chat_table WHERE conversation_id = '${conversationId}'`;
   try{
     let result = await mysql.query(sql);
@@ -127,7 +127,7 @@ router.get("/getDoctorChatList",async(req,res)=>{
       
       return item.patient_id;
     });
-    console.log(patientIdArr);
+    // console.log(patientIdArr);
     let sql2 = `SELECT * FROM patients_registration  WHERE id in (${patientIdArr.join(', ')})`;
     let result2 = await mysql.query(sql2);
     res.json(result2);
@@ -158,7 +158,7 @@ router.get("/getPatientChatList",async(req,res)=>{
 });
 
 router.get("/getCurrentId",async(req,res)=>{
-  console.log(num);
+  // console.log(num);
   let identity = null;
   if (num % 2 === 0) {
     identity  = 'doctor';
