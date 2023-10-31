@@ -11,11 +11,12 @@ expressWs(router);
 let num = 0;
 const connections = new Set();
 router.ws('/sendMessage',(ws,req)=>{
+    connections.add(ws);
     ws.on('message',async(message)=>{
         let sql3 = null;
         let conversationId = null;
         let name = null;
-        connections.add(ws);
+        // connections.add(ws);
         const parsedMessage = JSON.parse(message);
         //identity refers to sender identity
         const chatMessage = {
