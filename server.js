@@ -591,6 +591,58 @@ app.post("/liver_disease", async (req, res) => {
     res.json(response_for_request);
 });
 
+
+//-----------contact us API start---------------------
+app.post("/contact", async (req, res) => {
+  const { formData } = req.body
+  const contact_name = formData.contactName.trim()
+  const contact_phone = formData.contactPhone.trim()
+  const contact_email = formData.contactEmail.trim()
+  const contact_topic = formData.contactTopic.trim()
+  const contact_message = formData.contactMessage.trim()
+  const table_name = "contact_us";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (contact_name, contact_phone, contact_email, contact_topic, contact_message, contact_reply)
+  VALUES ("${contact_name}", "${contact_phone}", ${contact_email ? '"' + contact_email + '"' : "NULL"
+    }, "${contact_topic}", ${contact_message ? '"' + contact_message + '"' : "NULL"
+    }, 0)
+  ON DUPLICATE KEY 
+  UPDATE contact_name = "${contact_name}", 
+  contact_phone = "${contact_phone}",
+  contact_email = ${contact_email ? '"' + contact_email + '"' : "NULL"},
+  contact_topic = ${contact_topic ? '"' + contact_topic + '"' : "NULL"},
+  contact_message = ${contact_message ? '"' + contact_message + '"' : "NULL"},
+  contact_reply = 0;`;
+  try {
+    result = await mysql.query(sql);
+    //sending SMS message to remind using twilio.
+    const accountSid = 'ACdad74b829d1979b25038c1261561dac7';
+    const authToken = '';//authToken
+    const client = require('twilio')(accountSid, authToken);
+
+    client.messages
+      .create({
+        body: 'A new request is waiting for response, please check detail on the eHospital website.',
+        from: '+12255353632',
+        to: '+13435585817'
+      })
+      .then(message => console.log(message.sid))
+      .done();
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+//------------contact us API end ---------------------
+
+
+
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
