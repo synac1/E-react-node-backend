@@ -28,11 +28,6 @@ router.ws('/sendMessage',(ws,req)=>{
           };
           let sql1 = `SELECT conversation_id FROM chat_table WHERE sender = ${chatMessage.receiver} and sender_identity = '${chatMessage.receiverIdentity}' LIMIT 1 `;
           let sql2 = `SELECT conversation_id FROM chat_table WHERE sender = ${chatMessage.sender} and sender_identity = '${chatMessage.senderIdentity}' LIMIT 1 `;
-          if(senderIdentity='patient'){
-             sql3 = `SELECT FName,MName,LName FROM patients_registration WHERE id = ${chatMessage.sender} `;
-          }else{
-             sql3 = `SELECT FName,MName,LName FROM doctor_registration WHERE id = ${chatMessage.sender} `;
-          }
           try {
             let result1 = await mysql.query(sql1);
             let result2 = await mysql.query(sql2);
@@ -46,9 +41,6 @@ router.ws('/sendMessage',(ws,req)=>{
               let sql = `INSERT into chat_table (conversation_id, sender, receiver, sender_identity, receiver_identity, time, message) VALUES ('${conversationId}', ${chatMessage.sender}, ${chatMessage.receiver},'${chatMessage.senderIdentity}', '${chatMessage.receiverIdentity}', '${chatMessage.timestamp}', '${chatMessage.message}');`;
               await mysql.query(sql);
             }
-            let result3 = await mysql.query(sql3);
-            name = result3[0].FName+result3[0].MName+result3[0].LName;
-            
           } catch (error) {
             console.log(error,"Something wrong in MySQL." );
             connections.forEach((client) => {
@@ -63,7 +55,6 @@ router.ws('/sendMessage',(ws,req)=>{
               let chatInfo = {
                 chatMessage:chatMessage,
                 conversationId:conversationId,
-                name:name
               }
               client.send(JSON.stringify(chatInfo));
             }
@@ -80,11 +71,17 @@ router.get("/getConversationIdByUserIdentity",async(req,res)=>{
   const senderIdentity = req.query.senderIdentity;
   const receiver = req.query.receiver;
   const receiverIdentity = req.query.receiverIdentity;
+  let result = null;
   // console.log(sender);
   let sql = `SELECT conversation_id FROM chat_table WHERE sender = ${sender} and sender_identity = '${senderIdentity}' and receiver =${receiver} and receiver_identity='${receiverIdentity}' LIMIT 1 `;
+  let sql2 = `SELECT conversation_id FROM chat_table WHERE sender = ${receiver} and sender_identity = '${receiverIdentity}' and receiver =${sender} and receiver_identity='${senderIdentity}' LIMIT 1 `;
   // console.log(sql);
   try{
-    let result = await mysql.query(sql);
+    let result1 = await mysql.query(sql);
+    let result2 = await mysql.query(sql2);
+    if(result1.length!==0||result2.length!==0){
+      result = result1.length==0? result2:result1;
+    }
     // console.log(result);
     if(result.length!=0){
       res.json(result[0]);
