@@ -33,6 +33,7 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.PatientsRegistration = require("./app/models/PatientsRegistration")(sequelize, Sequelize);
+db.Task = require("./app/models/Task")(sequelize, Sequelize);
 
 
 module.exports = db;

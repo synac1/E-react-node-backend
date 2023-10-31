@@ -9,9 +9,9 @@ const hospitalAdminRegistration = require('../controllers/HospitalAdminRegistrat
 const labAdminRegistration = require('../controllers/LabAdminRegistration')
 const labApp = require('../controllers/LabApp')
 const userController = require("../controllers/userController");
-const contactController = require("../controllers/contactController");
 const db = require('../../db_login')
 const specialitiesController = require("../controllers/specialitiesController");
+const TasksController = require("../controllers/TasksController");
 
 router.get("/", userController.getAllUsers);
 router.get("/patients", userController.getAllPatients);
@@ -22,7 +22,11 @@ router.post("/HospitalAdminRegistration",(req,res) =>{hospitalAdminRegistration.
 router.post("/LabAdminRegistration",(req,res) =>{labAdminRegistration.handelSubmit(req,res,db,bcrypt)})
 router.post("/LabApp",(req,res) =>{labApp.handelSubmit(req,res,db,bcrypt)})
 router.get("/specialities", specialitiesController.getAllSpecialities);
-router.get("/contact", contactController.getContactUs);
-
+router.get("/tasks", TasksController.getAllTasks);
+router.get("/tasks/:id", TasksController.getTaskByPatientDetails);
+router.get("/tasks/:FName", TasksController.getTaskByPatientDetails);
+router.post("/tasks/add", TasksController.createTask);
+router.put("/tasks/:id", TasksController.updateTask);
+router.delete("/tasks/:id", TasksController.deleteTask);
 
 module.exports = router;
