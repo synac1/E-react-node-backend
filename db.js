@@ -34,6 +34,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.PatientsRegistration = require("./app/models/PatientsRegistration")(sequelize, Sequelize);
 db.Task = require("./app/models/Task")(sequelize, Sequelize);
-
+db.DoctorAvailableTimeSegment = require("./app/models/DoctorAvailableTimeSegment")(sequelize, Sequelize);
+db.DoctorAppointmentRequest = require("./app/models/DoctorAppointmentRequest")(sequelize, Sequelize);
 
 module.exports = db;
