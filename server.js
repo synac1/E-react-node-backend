@@ -1,26 +1,34 @@
 const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
+const appointmentRoutes = require('./app/routes/appointmentRoutes');
 const app = express();
-const multer = require("multer");
+const chatRoutes = require("./app/routes/chatRouter");
+
+const expressWs = require('express-ws');
+const multer = require('multer');
 const corsOptions = {
   // origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com',
   origin: "*", // Replace with your local React server's URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
-var models = require('./app/models/commonMethod');
 var mysql = require("./app/models/dbConnection");
-const db = require("./db");
+const db = require("./db"); 
+
+var models = require('./app/models/commonMethod');
 const mongodbConfig = require("./app/config/mongodb.config");
 const uri = mongodbConfig.uri;
 const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
 app.use(cors(corsOptions));
+expressWs(app);
 
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes); // Mount user routes
+app.use("/api/appointments", appointmentRoutes); // Mount user routes
+
 
 app.use("/api/diagnostic", require("./app/controllers/diagnostic"));
 
@@ -38,6 +46,8 @@ app.get("/", (req, res) => {
   res.send("Welcome to your server!");
 });
 
+app.use("/api/users", userRoutes); // Mount user routes
+app.use("/api/chat",chatRoutes);
 
 //New Api's start from here
 
