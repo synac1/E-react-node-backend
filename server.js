@@ -628,7 +628,7 @@ app.post("/contact", async (req, res) => {
     result = await mysql.query(sql);
     //sending SMS message to remind using twilio.
     const accountSid = 'ACdad74b829d1979b25038c1261561dac7';
-    const authToken = '';//authToken
+    const authToken = 'efb0415d6d1aba66b3db29dc453a0fc7';
     const client = require('twilio')(accountSid, authToken);
 
     client.messages
