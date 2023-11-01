@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
 const app = express();
-const multer = require("multer");
 const chatRoutes = require("./app/routes/chatRouter");
 
 const expressWs = require('express-ws');
