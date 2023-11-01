@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const app = express();
 const userRoutes = require("./app/routes/userRoutes");
 const appointmentRoutes = require('./app/routes/appointmentRoutes');
-const app = express();
+const diagnostic = require('./app/controllers/diagnostic');
 const chatRoutes = require("./app/routes/chatRouter");
 
 const expressWs = require('express-ws');
@@ -28,8 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes); // Mount user routes
 app.use("/api/appointments", appointmentRoutes); // Mount user routes
-
-
+app.use("/api/diagnostic", diagnostic);
 
 db.sequelize
   .authenticate()
