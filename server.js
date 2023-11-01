@@ -22,6 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes); // Mount user routes
 
+app.use("/api/diagnostic", require("./app/controllers/diagnostic"));
 
 db.sequelize
   .authenticate()
