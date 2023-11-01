@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./app/routes/userRoutes");
+const appointmentRoutes = require('./app/routes/appointmentRoutes');
 const app = express();
 const chatRoutes = require("./app/routes/chatRouter");
 
@@ -25,6 +26,9 @@ expressWs(app);
 // app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/users", userRoutes); // Mount user routes
+app.use("/api/appointments", appointmentRoutes); // Mount user routes
+
 
 
 db.sequelize
