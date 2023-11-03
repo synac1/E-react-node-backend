@@ -469,6 +469,17 @@ app.post("/DoctorProfileInfo", async (req, res) => {
 }
 )
 //---Ending  DocProfile
+
+//patient Overview data
+app.post("/patientOverview", async (req, res) => {
+  const patientID = req.body.patientId;
+  if (!patientID ) {
+    res.send({ error: "Missing Patient ID." });
+    console.log("Missing Patient ID.");
+    return;
+  }
+})
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
