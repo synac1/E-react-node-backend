@@ -662,6 +662,32 @@ app.post("/patientOverview", async (req, res) => {
     console.log("Missing Patient ID.");
     return;
   }
+    //queries
+  sql_patient_data= `select * from patients_registration where id="${patientID}"`;       
+  sql_patient_treatment =`select * 
+                          from patients_treatment 
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  //execute
+  try {
+    patientData = await mysql.query(sql_patient_data);
+    patientTreatment = await mysql.query(sql_patient_treatment);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  if (patientData.length<=0){
+    res.send({ error: "No records found." });
+    return; 
+  }
+  const data={
+    patient_data: patientData[0],
+    treatments: patientTreatment
+  }
+  //console.log(patientData) 
+  
+  res.json(data);
 })
 
 const PORT = process.env.PORT || 8080;
