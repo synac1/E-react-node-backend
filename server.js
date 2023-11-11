@@ -93,6 +93,48 @@ app.post("/skinCancerData/:id", async (req, res) => {
 });
 
 
+//Adeeb's code
+
+app.get("/pneumoniaData/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = client.db("htdata");
+  const collection = db.collection("X-Ray_Chest");
+  try {
+    const result = await collection.findOne({ patient_id: parseInt(id) });
+    res.send(result);
+  } catch (err) {
+    res.send("Error retrieving data by id");
+  }
+});
+
+app.post("/pneumoniaData/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { prediction } = req.body;
+    const db = client.db("htdata");
+    const collection = db.collection("X-Ray_Chest");
+    const filter = {
+      patient_id: parseInt(id),
+    };
+
+    const updateDoc = {
+      $set: {
+        prediction: prediction,
+      },
+    };
+
+    const result = await collection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount === 1) {
+      res.send("Document updated successfully.");
+    } else {
+      res.send("Document not found or not updated.");
+    }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 
 app.post("/searchpatient", (req, res) => {
   const phoneNumber = req.body.phoneNumber; // patient phone number, e.g. "6131230000"
