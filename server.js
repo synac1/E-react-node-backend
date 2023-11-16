@@ -742,21 +742,26 @@ app.post("/contact", async (req, res) => {
 //patient Overview data
 app.post("/patientOverview", async (req, res) => {
   const patientID = req.body.patientId;
+  let patientData, patientTreatment, online_status;
   if (!patientID ) {
     res.send({ error: "Missing Patient ID." });
     console.log("Missing Patient ID.");
     return;
   }
     //queries
-  sql_patient_data= `select * from patients_registration where id="${patientID}"`;       
-  sql_patient_treatment =`select * 
+  const sql_patient_data= `select * from patients_registration where id="${patientID}"`;       
+  const sql_patient_treatment =`select * 
                           from patients_treatment 
                           where patient_id="${patientID}"
                           order by RecordDate desc`;
+  const sql_online_status= `select session_status 
+                      from online_patients 
+                      where online_patient_id="${patientID}"`;
   //execute
   try {
     patientData = await mysql.query(sql_patient_data);
     patientTreatment = await mysql.query(sql_patient_treatment);
+    online_status = await  mysql.query(sql_online_status);
   } catch (error) {
     console.log(error, "Something wrong in MySQL.");
     res.send({ error: "Something wrong in MySQL." });
@@ -768,10 +773,11 @@ app.post("/patientOverview", async (req, res) => {
   }
   const data={
     patient_data: patientData[0],
-    treatments: patientTreatment
+    treatments: patientTreatment, 
+    status: online_status.length > 0 ? online_status[0].session_status : "inactive"
   }
-  //console.log(patientData) 
-  
+  //console.log(online_status[0].session_status, online_status)
+
   res.json(data);
 })
 
