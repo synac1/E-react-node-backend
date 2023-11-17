@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+const app = express();
 const userRoutes = require("./app/routes/userRoutes");
 const appointmentRoutes = require('./app/routes/appointmentRoutes');
-const app = express();
+const diagnostic = require('./app/controllers/diagnostic');
 const chatRoutes = require("./app/routes/chatRouter");
 
 const expressWs = require('express-ws');
@@ -28,8 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes); // Mount user routes
 app.use("/api/appointments", appointmentRoutes); // Mount user routes
-
-
+app.use("/api/diagnostic", diagnostic);
 
 db.sequelize
   .authenticate()
@@ -70,6 +70,91 @@ app.post("/skinCancerData/:id", async (req, res) => {
     const { prediction } = req.body;
     const db = client.db("htdata");
     const collection = db.collection("Skin_Images");
+    const filter = {
+      patient_id: parseInt(id),
+    };
+
+    const updateDoc = {
+      $set: {
+        prediction: prediction,
+      },
+    };
+
+    const result = await collection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount === 1) {
+      res.send("Document updated successfully.");
+    } else {
+      res.send("Document not found or not updated.");
+    }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+
+//Adeeb's code
+
+app.get("/pneumoniaData/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = client.db("htdata");
+  const collection = db.collection("X-Ray_Chest");
+  try {
+    const result = await collection.findOne({ patient_id: parseInt(id) });
+    res.send(result);
+  } catch (err) {
+    res.send("Error retrieving data by id");
+  }
+});
+
+app.post("/pneumoniaData/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { prediction } = req.body;
+    const db = client.db("htdata");
+    const collection = db.collection("X-Ray_Chest");
+    const filter = {
+      patient_id: parseInt(id),
+    };
+
+    const updateDoc = {
+      $set: {
+        prediction: prediction,
+      },
+    };
+
+    const result = await collection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount === 1) {
+      res.send("Document updated successfully.");
+    } else {
+      res.send("Document not found or not updated.");
+    }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// Bone cancer code
+
+app.get("/boneData/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = client.db("htdata");
+  const collection = db.collection("X-Ray_Feet");
+  try {
+    const result = await collection.findOne({ patient_id: parseInt(id) });
+    res.send(result);
+  } catch (err) {
+    res.send("Error retrieving data by id");
+  }
+});
+
+app.post("/boneData/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { prediction } = req.body;
+    const db = client.db("htdata");
+    const collection = db.collection("X-Ray_Feet");
     const filter = {
       patient_id: parseInt(id),
     };
@@ -626,19 +711,21 @@ app.post("/contact", async (req, res) => {
   contact_reply = 0;`;
   try {
     result = await mysql.query(sql);
+    /*
     //sending SMS message to remind using twilio.
-    const accountSid = 'ACdad74b829d1979b25038c1261561dac7';
-    const authToken = '';//authToken
+    const accountSid = '';
+    const authToken = '';
     const client = require('twilio')(accountSid, authToken);
 
     client.messages
       .create({
         body: 'A new request is waiting for response, please check detail on the eHospital website.',
-        from: '+12255353632',
-        to: '+13435585817'
+        from: '+',
+        to: '+'
       })
       .then(message => console.log(message.sid))
       .done();
+      */
   } catch (error) {
     console.log(error);
     res.send({ error: "Something wrong in MySQL." });
@@ -652,6 +739,81 @@ app.post("/contact", async (req, res) => {
 
 
 
+//-----------doctor help API start---------------------
+app.post("/doctorhelp", async (req, res) => {
+  const { formData } = req.body
+  const help_name = formData.helpName.trim()
+  const help_phone = formData.helpPhone.trim()
+  const help_email = formData.helpEmail.trim()
+  const help_message = formData.helpMessage.trim()
+  const table_name = "doctors_help";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (help_name, help_phone, help_email, help_message, help_reply)
+  VALUES ("${help_name}", "${help_phone}", ${help_email ? '"' + help_email + '"' : "NULL"
+    }, ${help_message ? '"' + help_message + '"' : "NULL"
+    }, 0)
+  ON DUPLICATE KEY 
+  UPDATE help_name = "${help_name}", 
+  help_phone = "${help_phone}",
+  help_email = ${help_email ? '"' + help_email + '"' : "NULL"},
+  help_message = ${help_message ? '"' + help_message + '"' : "NULL"},
+  help_reply = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+//------------doctor help API end ---------------------
+
+
+//patient Overview data
+app.post("/patientOverview", async (req, res) => {
+  const patientID = req.body.patientId;
+  let patientData, patientTreatment, online_status;
+  if (!patientID ) {
+    res.send({ error: "Missing Patient ID." });
+    console.log("Missing Patient ID.");
+    return;
+  }
+    //queries
+  const sql_patient_data= `select * from patients_registration where id="${patientID}"`;       
+  const sql_patient_treatment =`select * 
+                          from patients_treatment 
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  const sql_online_status= `select session_status 
+                      from online_patients 
+                      where online_patient_id="${patientID}"`;
+  //execute
+  try {
+    patientData = await mysql.query(sql_patient_data);
+    patientTreatment = await mysql.query(sql_patient_treatment);
+    online_status = await  mysql.query(sql_online_status);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  if (patientData.length<=0){
+    res.send({ error: "No records found." });
+    return; 
+  }
+  const data={
+    patient_data: patientData[0],
+    treatments: patientTreatment, 
+    status: online_status.length > 0 ? online_status[0].session_status : "inactive"
+  }
+  //console.log(online_status[0].session_status, online_status)
+
+  res.json(data);
+})
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
