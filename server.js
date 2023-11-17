@@ -711,19 +711,21 @@ app.post("/contact", async (req, res) => {
   contact_reply = 0;`;
   try {
     result = await mysql.query(sql);
+    /*
     //sending SMS message to remind using twilio.
-    const accountSid = 'ACdad74b829d1979b25038c1261561dac7';
-    const authToken = 'efb0415d6d1aba66b3db29dc453a0fc7';
+    const accountSid = '';
+    const authToken = '';
     const client = require('twilio')(accountSid, authToken);
 
     client.messages
       .create({
         body: 'A new request is waiting for response, please check detail on the eHospital website.',
-        from: '+12255353632',
-        to: '+13435585817'
+        from: '+',
+        to: '+'
       })
       .then(message => console.log(message.sid))
       .done();
+      */
   } catch (error) {
     console.log(error);
     res.send({ error: "Something wrong in MySQL." });
@@ -737,6 +739,38 @@ app.post("/contact", async (req, res) => {
 
 
 
+//-----------doctor help API start---------------------
+app.post("/doctorhelp", async (req, res) => {
+  const { formData } = req.body
+  const help_name = formData.helpName.trim()
+  const help_phone = formData.helpPhone.trim()
+  const help_email = formData.helpEmail.trim()
+  const help_message = formData.helpMessage.trim()
+  const table_name = "doctors_help";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (help_name, help_phone, help_email, help_message, help_reply)
+  VALUES ("${help_name}", "${help_phone}", ${help_email ? '"' + help_email + '"' : "NULL"
+    }, ${help_message ? '"' + help_message + '"' : "NULL"
+    }, 0)
+  ON DUPLICATE KEY 
+  UPDATE help_name = "${help_name}", 
+  help_phone = "${help_phone}",
+  help_email = ${help_email ? '"' + help_email + '"' : "NULL"},
+  help_message = ${help_message ? '"' + help_message + '"' : "NULL"},
+  help_reply = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+//------------doctor help API end ---------------------
 
 
 //patient Overview data
