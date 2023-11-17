@@ -28,6 +28,8 @@ router.post("/activeOnlineUser",(req,res) =>{activeOnlineUser.handelSubmit(req,r
 router.post("/inactiveUser",(req,res) =>{inactiveUser.handelSubmit(req,res,db)})
 router.get("/specialities", specialitiesController.getAllSpecialities);
 router.get("/contact", contactController.getContactUs);
+router.get("/reviews", contactController.getReviews);
+router.get("/doctorhelp", contactController.getHelp);
 router.get("/tasks", TasksController.getAllTasks);
 router.get("/tasks/:id", TasksController.getTaskByPatientDetails);
 router.get("/tasks/:FName", TasksController.getTaskByPatientDetails);
