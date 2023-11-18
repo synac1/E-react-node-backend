@@ -5,6 +5,7 @@ const userRoutes = require("./app/routes/userRoutes");
 const appointmentRoutes = require('./app/routes/appointmentRoutes');
 const diagnostic = require('./app/controllers/diagnostic');
 const chatRoutes = require("./app/routes/chatRouter");
+const session = require('express-session');
 
 const expressWs = require('express-ws');
 const multer = require('multer');
@@ -23,6 +24,16 @@ const { MongoClient } = require("mongodb");
 const client = new MongoClient(uri);
 app.use(cors(corsOptions));
 expressWs(app);
+
+app.use(session({
+  secret: 'eHospital', 
+  resave: false,
+  saveUninitialized: true,
+  cookie:{
+    maxAge:1000*3600,
+    secure:false
+  }
+}));
 
 // app.use(cors());
 app.use(express.json());
