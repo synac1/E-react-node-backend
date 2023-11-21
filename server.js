@@ -695,3 +695,59 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 //please do comments before and after your code part for better readibility.
+
+///voicerecognition code
+const typeToCollectionMap = {
+  bloodtest: 'Bloodtest_Report',
+  mrispine: 'MRI_Spine',
+  ctscanbrain: 'CTScan_Brain',
+  ecgreport: 'ECG_Report',
+  echocardiogram: 'Echocardiogram',
+  ultrasoundabdomen: 'Ultrasound_Abdomen',
+  medicalhistory: 'Medical_History',
+};
+ 
+app.get("/files/:fileType", async (req, res) => {
+  const fileType = req.params.fileType;
+
+
+  try {
+    const db = client.db("htdata");
+    const collectionName = typeToCollectionMap[fileType];
+
+    if (!collectionName) {
+      return res.status(400).send("Invalid file type");
+    }
+
+    const collection = db.collection(collectionName);
+    const result = await collection.findOne({});
+
+    if (!result) {
+      return res.status(404).send("File not found");
+    }
+
+    console.log("Result:", result);
+
+    if (!result.file) {
+      console.error("Invalid file structure - 'file' field is missing:", result);
+      return res.status(500).send("Invalid file structure - 'file' field is missing");
+    }
+
+    const { mimetype, buffer } = result.file;
+
+    if (!buffer) {
+      console.error("Invalid file structure - 'buffer' field is missing:", result);
+      return res.status(500).send("Invalid file structure - 'buffer' field is missing");
+    }
+
+    res.setHeader('Content-Type', mimetype);
+    res.send({ data: buffer.toString('base64'), mimetype });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    // Close the MongoDB connection if needed
+    // client.close();
+  }
+});
+
