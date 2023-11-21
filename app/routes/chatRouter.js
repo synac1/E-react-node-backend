@@ -185,7 +185,30 @@ router.get("/getCurrentId",async(req,res)=>{
   });
 });
 
+router.get('/getInfo',async(req,res)=>{
+  console.log(req.session.identity);
+  console.log(req.session.email);
+  let email = req.session.email;
+  let identity = req.session.identity;
+  try{
+    if(identity == 'Doctor'){
+      let sql = `SELECT * FROM doctors_registration  WHERE EmailId= '${email}'`;
+      info = await mysql.query(sql);
+    }else{
+      let sql = `SELECT * FROM patients_registration  WHERE EmailId= '${email}'`;
+      info = await mysql.query(sql);
+    }
+  }catch(error){
+    console.log(error,"Something wrong in MySQL.");
+    res.send("server is busy");
+    return;
+  }
+  res.json({
+    identity:identity,
+    id:info[0].id
+  });
 
+});
 
 
 
