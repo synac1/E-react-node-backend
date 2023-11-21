@@ -64,12 +64,53 @@ app.get("/skinCancerData/:id", async (req, res) => {
   }
 });
 
+app.get("/skinDiseasesData/:id", async (req, res) =>
+{
+  const id = req.params.id;
+  const db = client.db("htdata");
+  const collection = db.collection("Skin_Diseases");
+  try {
+    const result = await collection.findOne({ patient_id: parseInt(id) });
+    res.send(result);
+  } catch (err) {
+    res.send("Error retrieving data by id");
+  }
+})
+
 app.post("/skinCancerData/:id", async (req, res) => {
   try {
     const id = req.params.id;
     const { prediction } = req.body;
     const db = client.db("htdata");
     const collection = db.collection("Skin_Images");
+    const filter = {
+      patient_id: parseInt(id),
+    };
+
+    const updateDoc = {
+      $set: {
+        prediction: prediction,
+      },
+    };
+
+    const result = await collection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount === 1) {
+      res.send("Document updated successfully.");
+    } else {
+      res.send("Document not found or not updated.");
+    }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+app.post("/skinDiseasesData/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { prediction } = req.body;
+    const db = client.db("htdata");
+    const collection = db.collection("Skin_Diseases");
     const filter = {
       patient_id: parseInt(id),
     };
