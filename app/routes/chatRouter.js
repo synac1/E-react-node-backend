@@ -211,5 +211,17 @@ router.get('/getInfo',async(req,res)=>{
 });
 
 
-
+router.get('/getDoctorIDByPatientID', async(req,res)=>{
+  const patientId = req.query.patientId;
+  try{
+    let sql = `SELECT doctor_id FROM doctor_recordauthorized  WHERE patient_id = ${patientId}`;
+    let result = await mysql.query(sql);
+    console.log(result);
+    res.json({doctorId:result[0].doctor_id});
+  }catch(error){
+    console.log(error,"Something wrong in MySQL.");
+    res.send("server is busy");
+    return;
+  }
+});
 module.exports = router;
