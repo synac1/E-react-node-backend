@@ -19,7 +19,37 @@ exports.getContactUs = async (req, res) => {
   }
 };
 
+exports.getReviews = async (req, res) => {
+
+  console.log("reviews")
+
+  try {
+    const reviews = await db.sequelize.query(
+      "SELECT * FROM nkw2tiuvgv6ufu1z.userreviews",
+      { type: QueryTypes.SELECT }
+    );
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 
+exports.getHelp = async (req, res) => {
+
+  console.log("reviews")
+
+  try {
+    const reviews = await db.sequelize.query(
+      "SELECT * FROM nkw2tiuvgv6ufu1z.doctors_help",
+      { type: QueryTypes.SELECT }
+    );
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 

@@ -1,5 +1,4 @@
 
-
 const handelLogin = (req,res,db,bcrypt)=>{
     const {email , password, selectedOption} = req.body;
     if(!email || !password || !selectedOption){
@@ -13,6 +12,8 @@ const handelLogin = (req,res,db,bcrypt)=>{
     then(data =>{
         const isValid = password === data[0].password;
         if(isValid){
+            req.session.identity = selectedOption;
+            req.session.email = email;
             return db.select('*').from('admins')
             .where('email','=',email)
             .then(user =>{
@@ -31,6 +32,8 @@ const handelLogin = (req,res,db,bcrypt)=>{
     then(data =>{
         const isValid = password === data[0].password;
         if(isValid){
+            req.session.identity = selectedOption;
+            req.session.email = email;
             return db.select('*').from('patients_registration')
             .where('EmailId','=',email)
             .then(user =>{
@@ -49,6 +52,8 @@ const handelLogin = (req,res,db,bcrypt)=>{
     then(data =>{
         const isValid = password === data[0].password;
         if(isValid){
+            req.session.identity = selectedOption;
+            req.session.email = email;
             return db.select('*').from('doctors_registration')
             .where('EmailId','=',email)
             .then(user =>{
