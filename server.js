@@ -928,3 +928,41 @@ app.get("/files/:fileType", async (req, res) => {
   }
 });
 
+/**
+ * Psychology Data Endpoint
+ **/
+app.get('/psychology/:patientId', async (req, res, nxt) => {
+  const { patientId } = req.params;
+
+  psychologysql = `SELECT * FROM psychology_information
+          WHERE patient_id = "${patientId}" 
+          limit 1`;
+
+  patientsql = `SELECT case Gender
+      when 'Male' then 1
+      when 'Female' then 0
+      else 2
+      end as Gender,
+      Age FROM patients_registration
+        WHERE id = ${patientId}
+        limit 1`;
+
+  let psychologyData = null;
+  let patientData = null;
+  try {
+      psychologyData = await mysql.query(psychologysql);
+      patientData = await mysql.query(patientsql);
+  } catch (error) {
+      return res.status(500).send({ error: "Something wrong in MySQL" });
+  }
+
+  if (!psychologyData || !patientData) {
+      return res.status(404).send({ error: "No patient matched in database." });
+  }
+  
+  return res.json({...psychologyData[0], ...patientData[0]});
+});
+
+/**
+ * Psychology Data Endpoint ends
+ **/
