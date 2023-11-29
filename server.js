@@ -1052,6 +1052,102 @@ app.post("/getSurgeryPlan", async (req, res) => {
       res.status(500).send({ error: "Error retrieving surgery plan from MySQL." });
   }
 });
+//patientMedicalHistory
+app.post("/patientMedicalHistory", async (req, res) => {
+  const patientID = req.body.patientId;
+  let physical_test_cad, physical_test_ckd, physical_test_hd, physical_test_ms, vaccines, bloodtests, ecg, eye_test, tumor;
+
+  if (!patientID ) {
+    res.send({ error: "Missing Patient ID." });
+    console.log("Missing Patient ID.");
+    return;
+  }
+    //queries
+  const sql_physical_test_cad= `select * 
+                         from physical_test_cad 
+                         where patient_id=${patientID}
+                         order by RecordDate desc
+                         `;       
+  const sql_physical_test_ckd =`select * 
+                          from physical_test_ck 
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  const sql_physical_test_hd = `select * 
+                         from physical_test_hd 
+                         where patient_id=${patientID}
+                         order by RecordDate desc
+                         `;       
+  const sql_physical_test_ms =`select * 
+                          from  physical_test_ms 
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+
+  const sql_vaccines =`select * 
+                          from  vaccines 
+                          where patient_id="${patientID}"
+                          `;
+  const sql_bloodtests=`select * 
+                          from  bloodtests 
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  const sql_ecg=`select * 
+                          from  ecg
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  const sql_eye_test=`select * 
+                          from  eye_test
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  const sql_tumor=`select * 
+                          from tumor
+                          where patient_id="${patientID}"
+                          order by RecordDate desc`;
+  //execute
+  try {
+      // Execute all your queries
+      physical_test_cad = await mysql.query(sql_physical_test_cad);
+      physical_test_ckd = await mysql.query(sql_physical_test_ckd);
+      physical_test_hd = await mysql.query(sql_physical_test_hd);
+      physical_test_ms = await mysql.query(sql_physical_test_ms);
+      vaccines = await mysql.query(sql_vaccines);
+      bloodtests = await mysql.query(sql_bloodtests);
+      ecg = await mysql.query(sql_ecg);
+      eye_test = await mysql.query(sql_eye_test);
+      tumor = await mysql.query(sql_tumor);
+  
+      // Calculate total records for each test
+      const total_records = {
+        physical_test_cad_total: physical_test_cad.length, 
+        physical_test_ckd_total: physical_test_ckd.length, 
+        physical_test_hd_total: physical_test_hd.length,
+        physical_test_ms_total: physical_test_ms.length,
+        vaccines_total: vaccines.length,
+        bloodtests_total: bloodtests.length,
+        ecg_total: ecg.length,
+        eye_test_total: eye_test.length,
+        tumor_total: tumor.length
+      };
+    // Combine all the data into one object
+    const data = {
+      total_records,
+      physical_test_cad, 
+      physical_test_ckd, 
+      physical_test_hd,
+      physical_test_ms,
+      vaccines,
+      bloodtests,
+      ecg,
+      eye_test,
+      tumor
+    };
+    console.log(data);
+    res.json(data);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+})
 
 //-------------------------
 
