@@ -972,7 +972,8 @@ app.post("/getDoctorPatientMessages", async (req, res) => {
   const { doctorId, patientId } = req.body;
   // Select SQL query
   const sql_reminders = `select * from doctor_to_patient_message
-                        where doctor_id=${doctorId} and patient_id=${patientId} `;
+                        where doctor_id=${doctorId} and patient_id=${patientId} 
+                        order by time_stamp desc `;
   try {
       let data = await mysql.query(sql_reminders);
       res.status(200).send(data);
