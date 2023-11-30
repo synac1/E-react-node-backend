@@ -10,7 +10,7 @@ const session = require('express-session');
 const expressWs = require('express-ws');
 const multer = require('multer');
 const corsOptions = {
-  // origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com',
+  //origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com',
   origin: "*", // Replace with your local React server's URL
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 };
@@ -1161,28 +1161,37 @@ app.listen(PORT, () => {
 ///voicerecognition code
 const typeToCollectionMap = {
   bloodtest: 'Bloodtest_Report',
-  mrispine: 'MRI_Spine',
-  ctscanbrain: 'CTScan_Brain',
+  mrireport: 'MRI_Brain', 
+  ctscan: 'CT-Scan_Abdomen',
+  cellimages: 'Cell-Images',
   ecgreport: 'ECG_Report',
   echocardiogram: 'Echocardiogram',
+  skindiseases: 'Skin_Diseases',
+  skinimages: 'Skin_Images',
   ultrasoundabdomen: 'Ultrasound_Abdomen',
   medicalhistory: 'Medical_History',
+  xrayreport: 'X-Ray_Lung',
+  endoscope: 'Endoscopic',
+  template: 'template'
 };
- 
-app.get("/files/:fileType", async (req, res) => {
-  const fileType = req.params.fileType;
 
+app.get("/files/:filetype/:patientId", async (req, res) => {
+  const filetype = req.params.filetype;
+  const patientId = req.params.patientId;
+
+  console.log("File type:", filetype);
+  console.log("PatientId:", patientId);
 
   try {
     const db = client.db("htdata");
-    const collectionName = typeToCollectionMap[fileType];
+    const collectionName = typeToCollectionMap[filetype];
 
     if (!collectionName) {
       return res.status(400).send("Invalid file type");
     }
-
+ 
     const collection = db.collection(collectionName);
-    const result = await collection.findOne({});
+    const result = await collection.findOne({ patient_id: parseInt(patientId) });
 
     if (!result) {
       return res.status(404).send("File not found");
@@ -1190,26 +1199,23 @@ app.get("/files/:fileType", async (req, res) => {
 
     console.log("Result:", result);
 
-    if (!result.file) {
-      console.error("Invalid file structure - 'file' field is missing:", result);
-      return res.status(500).send("Invalid file structure - 'file' field is missing");
+    if (!result.file || !result.file.buffer) {
+      console.error("Invalid file structure - 'buffer' field is missing:", result);
+      return res.status(500).send("Invalid file structure - 'buffer' field is missing");
     }
 
-    const { mimetype, buffer } = result.file;
-
+    const { buffer } = result.file;
     if (!buffer) {
       console.error("Invalid file structure - 'buffer' field is missing:", result);
       return res.status(500).send("Invalid file structure - 'buffer' field is missing");
     }
 
-    res.setHeader('Content-Type', mimetype);
-    res.send({ data: buffer.toString('base64'), mimetype });
+  
+    return res.send({ data: buffer.toString('base64') });
+
   } catch (err) {
     console.error(err);
-    res.status(500).send("Internal Server Error");
-  } finally {
-    // Close the MongoDB connection if needed
-    // client.close();
+    return res.status(500).send("Internal Server Error");
   }
 });
 
