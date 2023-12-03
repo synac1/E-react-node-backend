@@ -1088,13 +1088,10 @@ app.post("/getSurgeryPlan", async (req, res) => {
       res.status(500).send({ error: "Error retrieving surgery plan from MySQL." });
   }
 });
-
-
-
-//patientMedicalHistory
+//Patient Medical History
 app.post("/patientMedicalHistory", async (req, res) => {
   const patientID = req.body.patientId;
-
+  console.log("In medical History")
   if (!patientID) {
     res.status(400).send({ error: "Missing Patient ID." });
     console.log("Missing Patient ID.");
@@ -1103,22 +1100,29 @@ app.post("/patientMedicalHistory", async (req, res) => {
 
   // Add validation and sanitization for patientID here
 
-  // Non-Parameterized SQL query templates
-  const sqlTemplate = (tableName) => `
+  const tablesWithRecordDate = ['physical_test_cad', 'physical_test_ck', 'physical_test_hd', 'physical_test_ms', 'bloodtests', 'ecg', 'eye_test', 'tumor'];
+  const tablesWithoutRecordDate = ['vaccines'];
+
+  const sqlTemplate = (tableName, hasRecordDate) => `
     SELECT * 
     FROM ${tableName} 
     WHERE patient_id = ${patientID}
-    ORDER BY RecordDate DESC
+    ${hasRecordDate ? 'ORDER BY RecordDate DESC' : ''}
   `;
-
-  const tables = ['physical_test_cad', 'physical_test_ck', 'physical_test_hd', 'physical_test_ms', 'vaccines', 'bloodtests', 'ecg', 'eye_test', 'tumor'];
 
   try {
     let data = {};
     let total_records = {};
 
-    for (const table of tables) {
-      const sql = sqlTemplate(table);
+    for (const table of tablesWithRecordDate) {
+      const sql = sqlTemplate(table, true);
+      const result = await mysql.query(sql);
+      data[table] = result;
+      total_records[`${table}_total`] = result.length;
+    }
+
+    for (const table of tablesWithoutRecordDate) {
+      const sql = sqlTemplate(table, false);
       const result = await mysql.query(sql);
       data[table] = result;
       total_records[`${table}_total`] = result.length;
@@ -1131,7 +1135,6 @@ app.post("/patientMedicalHistory", async (req, res) => {
     res.status(500).send({ error: "Something wrong in MySQL." });
   }
 });
-
 
 //Doctor Send Task Request to Staff
 app.post("/sendDoctorStaffMessage", async (req, res) => {
