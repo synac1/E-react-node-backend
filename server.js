@@ -606,12 +606,11 @@ app.post("/DoctorProfileInfo", async (req, res) => {
   }
    //query
    sql = `
-      select a.FName, a.LName,a.Age, a.MobileNumber, a.EmailId,
-      a.Medical_LICENSE_Number,a.Specialization,a.City, 
-      count(b.doctor_id ="${doctorID}") as active_patients
-      from  doctors_registration as a, doctor_recordauthorized  as b
-      where a.id="${doctorID}" and a.id=b.doctor_id;       
-   `;
+    SELECT a.*, 
+    COUNT(b.patient_id) AS active_patients
+    FROM doctors_registration AS a
+    JOIN doctor_recordauthorized AS b ON a.id = b.doctor_id
+    WHERE a.id = ${doctorID} `;
    //execute
    try {
     result = await mysql.query(sql);
@@ -944,16 +943,26 @@ app.post("/patientVisits", async (req, res) => {
 //Retrieve Doctor Reminder
 app.post("/getDoctorReminders", async (req, res) => {
   const { doctorId } = req.body;
-  // Select SQL query
-  const sql_reminders = `select * from doctor_reminders where doctor_id=${doctorId}`;
+
+  // Validate and sanitize doctorId here
+
+  // Non-Parameterized Select SQL query
+  const sql_reminders = `SELECT * FROM doctor_reminders WHERE doctor_id = ${doctorId}`;
+
   try {
       let data = await mysql.query(sql_reminders);
-      res.status(200).send(data);
+      if (data.length === 0) {
+          res.status(404).send({ message: "No reminders found." });
+      } else {
+          res.status(200).send(data);
+      }
   } catch (error) {
       console.error("Error Retrieving reminder:", error);
-      res.status(500).send({ error: "Error Retrieving reminding in MySQL." });
+      res.status(500).send({ error: "Error Retrieving reminder in MySQL." });
   }
 });
+
+
 // Save Doctor Reminder
 app.post("/saveDoctorReminder", async (req, res) => {
   const { doctorId, reminderDescription } = req.body;
@@ -982,33 +991,46 @@ app.post("/getDoctorPatientMessages", async (req, res) => {
       res.status(500).send({ error: "Error Selecting reminder in MySQL." });
   }
 });
+
 //Send Doctor to Patient Message
 app.post("/sendDoctorPatientMessage", async (req, res) => {
   const { doctorId, patientId, doctorFName, doctorLName,
      patientFName, patientLName, message, time} = req.body;
-  // Select SQL query
-  const sql_insert_message = `insert into doctor_to_patient_message
-  (doctor_id, patient_id, doctor_FName, doctor_LName, patient_FName, 
-    patient_LName, message, time_sent)
-  values (${doctorId}, ${patientId}, '${doctorFName}', '${doctorLName}',
-  '${patientFName}', '${patientLName}', '${message}', '${time}')`;
+
+  // Add validation and sanitization for the input data here
+
+  // Non-Parameterized Insert SQL query
+  const sql_insert_message = `
+    INSERT INTO doctor_to_patient_message (
+      doctor_id, patient_id, doctor_FName, doctor_LName, patient_FName, 
+      patient_LName, message, time_sent
+    ) VALUES (
+      '${doctorId}', '${patientId}', '${doctorFName.replace(/'/g, "''")}', 
+      '${doctorLName.replace(/'/g, "''")}', '${patientFName.replace(/'/g, "''")}', 
+      '${patientLName.replace(/'/g, "''")}', '${message.replace(/'/g, "''")}', '${time}'
+    )`;
+
   try {
       await mysql.query(sql_insert_message);
       res.status(200).send({ message: "Message saved successfully" });
   } catch (error) {
       console.error("Error saving message:", error);
-      res.status(500).send({ error: "Error saveing reminder in MySQL." });
+      res.status(500).send({ error: "Error saving message in MySQL." });
   }
 });
+
+
 //Surgery Planning
 app.post("/saveSurgeryPlan", async (req, res) => {
   const { doctorId, patientId, surgeryType, surgeryDate, 
           preSurgeryConsultationDetails, riskAssessmentDetails, 
           postOperativeCarePlan } = req.body;
 
-  // Insert SQL query
+  // Add validation and sanitization for the input data here
+
+  // Non-Parameterized Insert SQL query
   const sql_insert_plan = `
-    insert into surgery_planning (
+    INSERT INTO surgery_planning (
       doctor_id, 
       patient_id, 
       surgery_type, 
@@ -1017,13 +1039,13 @@ app.post("/saveSurgeryPlan", async (req, res) => {
       risk_assessment_details, 
       post_operative_care_plan
     ) VALUES (
-      ${doctorId}, 
-      ${patientId}, 
-      '${surgeryType}', 
-      '${surgeryDate}', 
-      '${preSurgeryConsultationDetails}', 
-      '${riskAssessmentDetails}', 
-      '${postOperativeCarePlan}'
+      '${doctorId}', 
+      '${patientId}', 
+      '${surgeryType.replace(/'/g, "''")}', 
+      '${surgeryDate.replace(/'/g, "''")}', 
+      '${preSurgeryConsultationDetails.replace(/'/g, "''")}', 
+      '${riskAssessmentDetails.replace(/'/g, "''")}', 
+      '${postOperativeCarePlan.replace(/'/g, "''")}'
     )`;
 
   try {
@@ -1034,122 +1056,194 @@ app.post("/saveSurgeryPlan", async (req, res) => {
       res.status(500).send({ error: "Error saving surgery plan in MySQL." });
   }
 });
+
+
+
 // Surgery Plan Retrieval
 app.post("/getSurgeryPlan", async (req, res) => {
   const { doctorId } = req.body;
   console.log("Received doctorId:", doctorId);
-  
-  // SQL Query to retrieve the surgery plan
-  const sql_retrieve_plan = `SELECT * FROM surgery_planning 
-                             WHERE doctor_id = ${doctorId}`;
+
+  if (!doctorId) {
+    res.status(400).send({ error: "Missing Doctor ID." });
+    console.log("Missing Doctor ID.");
+    return;
+  }
+
+  // Add validation and sanitization for doctorId here
+
+  // Non-Parameterized SQL Query to retrieve the surgery plan
+  const sql_retrieve_plan = `SELECT * FROM surgery_planning WHERE doctor_id = ${doctorId}`;
 
   try {
       const surgeryPlans = await mysql.query(sql_retrieve_plan);
       console.log("Query result:", surgeryPlans);
-      res.status(200).send(surgeryPlans);
-      
+      if (surgeryPlans.length === 0) {
+          res.status(404).send({ error: "No surgery plans found." });
+      } else {
+          res.status(200).send(surgeryPlans);
+      }
   } catch (error) {
       console.error("Error retrieving surgery plan:", error);
       res.status(500).send({ error: "Error retrieving surgery plan from MySQL." });
   }
 });
+
+
+
 //patientMedicalHistory
 app.post("/patientMedicalHistory", async (req, res) => {
   const patientID = req.body.patientId;
-  let physical_test_cad, physical_test_ckd, physical_test_hd, physical_test_ms, vaccines, bloodtests, ecg, eye_test, tumor;
 
-  if (!patientID ) {
-    res.send({ error: "Missing Patient ID." });
+  if (!patientID) {
+    res.status(400).send({ error: "Missing Patient ID." });
     console.log("Missing Patient ID.");
     return;
   }
-    //queries
-  const sql_physical_test_cad= `select * 
-                         from physical_test_cad 
-                         where patient_id=${patientID}
-                         order by RecordDate desc
-                         `;       
-  const sql_physical_test_ckd =`select * 
-                          from physical_test_ck 
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
-  const sql_physical_test_hd = `select * 
-                         from physical_test_hd 
-                         where patient_id=${patientID}
-                         order by RecordDate desc
-                         `;       
-  const sql_physical_test_ms =`select * 
-                          from  physical_test_ms 
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
 
-  const sql_vaccines =`select * 
-                          from  vaccines 
-                          where patient_id="${patientID}"
-                          `;
-  const sql_bloodtests=`select * 
-                          from  bloodtests 
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
-  const sql_ecg=`select * 
-                          from  ecg
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
-  const sql_eye_test=`select * 
-                          from  eye_test
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
-  const sql_tumor=`select * 
-                          from tumor
-                          where patient_id="${patientID}"
-                          order by RecordDate desc`;
-  //execute
+  // Add validation and sanitization for patientID here
+
+  // Non-Parameterized SQL query templates
+  const sqlTemplate = (tableName) => `
+    SELECT * 
+    FROM ${tableName} 
+    WHERE patient_id = ${patientID}
+    ORDER BY RecordDate DESC
+  `;
+
+  const tables = ['physical_test_cad', 'physical_test_ck', 'physical_test_hd', 'physical_test_ms', 'vaccines', 'bloodtests', 'ecg', 'eye_test', 'tumor'];
+
   try {
-      // Execute all your queries
-      physical_test_cad = await mysql.query(sql_physical_test_cad);
-      physical_test_ckd = await mysql.query(sql_physical_test_ckd);
-      physical_test_hd = await mysql.query(sql_physical_test_hd);
-      physical_test_ms = await mysql.query(sql_physical_test_ms);
-      vaccines = await mysql.query(sql_vaccines);
-      bloodtests = await mysql.query(sql_bloodtests);
-      ecg = await mysql.query(sql_ecg);
-      eye_test = await mysql.query(sql_eye_test);
-      tumor = await mysql.query(sql_tumor);
-  
-      // Calculate total records for each test
-      const total_records = {
-        physical_test_cad_total: physical_test_cad.length, 
-        physical_test_ckd_total: physical_test_ckd.length, 
-        physical_test_hd_total: physical_test_hd.length,
-        physical_test_ms_total: physical_test_ms.length,
-        vaccines_total: vaccines.length,
-        bloodtests_total: bloodtests.length,
-        ecg_total: ecg.length,
-        eye_test_total: eye_test.length,
-        tumor_total: tumor.length
-      };
-    // Combine all the data into one object
-    const data = {
-      total_records,
-      physical_test_cad, 
-      physical_test_ckd, 
-      physical_test_hd,
-      physical_test_ms,
-      vaccines,
-      bloodtests,
-      ecg,
-      eye_test,
-      tumor
-    };
-    console.log(data);
-    res.json(data);
-  } catch (error) {
-    console.log(error, "Something wrong in MySQL.");
-    res.send({ error: "Something wrong in MySQL." });
-    return;
-  }
-})
+    let data = {};
+    let total_records = {};
 
+    for (const table of tables) {
+      const sql = sqlTemplate(table);
+      const result = await mysql.query(sql);
+      data[table] = result;
+      total_records[`${table}_total`] = result.length;
+    }
+
+    console.log({ total_records, ...data });
+    res.json({ total_records, ...data });
+  } catch (error) {
+    console.error("Error in MySQL:", error);
+    res.status(500).send({ error: "Something wrong in MySQL." });
+  }
+});
+
+
+//Doctor Send Task Request to Staff
+app.post("/sendDoctorStaffMessage", async (req, res) => {
+  const { doctorId, patientId, task } = req.body;
+
+  // Validate and sanitize inputs
+  // IMPORTANT: Add validation and sanitization here
+
+  // Non-Parameterized SQL query
+  const sql_insert_message = `INSERT INTO doctor_task_request 
+                              (doctor_id, patient_id, task,check_status)
+                              VALUES (${doctorId}, ${patientId}, '${task}', 0)`;
+
+  try {
+      await mysql.query(sql_insert_message);
+      res.status(200).send({ message: "Message saved successfully" });
+  } catch (error) {
+      console.error("Error saving message:", error);
+      res.status(500).send({ error: "Error saving message in MySQL." });
+  }
+});
+
+
+//Get All prescriptions
+app.post("/getPrescriptions", async(req, res) => {
+  const { doctorId, patientId } = req.body;
+
+  // Validate and sanitize inputs
+  // IMPORTANT: Add validation and sanitization here to prevent SQL injection
+  console.log(doctorId, patientId)
+  // Non-Parameterized SQL query
+  const sql_select = `SELECT * FROM prescription WHERE doctor_id = ${doctorId} AND patient_id = ${patientId}`;
+  console.log("In Prescription")
+  try {
+    const result = await mysql.query(sql_select);
+    console.log(result)
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in MySQL:", error);
+    res.status(500).send({ error: "Something wrong in MySQL." });
+  }
+});
+
+//Save Prescription
+app.post("/savePrescription", async (req, res) => {
+  const { doctorId, patientId, doctorFName, doctorLName, doctorPhone, doctorOfficeAddress,
+          patientFName, patientLName, patientPhone, patientAddress, prescription } = req.body;
+
+  // Add input validation and sanitization here 
+
+  // Non-Parameterized Insert SQL query
+  const sql_insert = `
+    INSERT INTO prescription (
+      doctor_id, 
+      patient_id, 
+      doctor_FName, 
+      doctor_LName, 
+      doctor_phone,
+      doctor_office_address, 
+      patient_FName, 
+      patient_LName,
+      patient_phone, 
+      patient_address,
+      prescription_description
+    ) VALUES (
+      '${doctorId}', 
+      '${patientId}', 
+      '${doctorFName.replace(/'/g, "''")}',
+      '${doctorLName.replace(/'/g, "''")}',
+      '${doctorPhone.replace(/'/g, "''")}', 
+      '${doctorOfficeAddress.replace(/'/g, "''")}',
+      '${patientFName}', 
+      '${patientLName}', 
+      '${patientPhone.replace(/'/g, "''")}', 
+      '${patientAddress.replace(/'/g, "''")}',
+      '${prescription.replace(/'/g, "''")}'
+    )`;
+
+  try {
+      await mysql.query(sql_insert);
+      res.status(200).send({ message: "Prescription saved successfully" });
+  } catch (error) {
+      console.error("Error saving prescription:", error);
+      res.status(500).send({ error: "Error saving prescription in MySQL." });
+  }
+});
+
+//Delete Reminder
+
+app.post("/deleteReminder", async (req, res) => {
+  const reminderId = parseInt(req.body.reminderId, 10);
+  const doctorId = parseInt(req.body.doctorId, 10);
+  console.log(reminderId, doctorId)
+  const sql_delete_reminder = `DELETE FROM doctor_reminders WHERE id=${reminderId} AND doctor_id=${doctorId}`;
+
+  try {
+      const result = await mysql.query(sql_delete_reminder);
+      if (result.affectedRows === 0) {
+          res.status(404).send({ message: "No reminder found to delete." });
+      } else {
+          res.status(200).send({ message: "Reminder deleted successfully." });
+      }
+  } catch (error) {
+      console.error("Error deleting reminder:", error);
+      res.status(500).send({ error: "Error deleting reminder in MySQL." });
+  }
+});
+
+
+//-------
+
+  
 //-------------------------
 
 const PORT = process.env.PORT || 8080;
