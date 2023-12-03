@@ -411,9 +411,9 @@ app.post("/getPhysicaltestCK", async (req, res) => {
     return;
   }
   // Execute query
-  sql = `SELECT * FROM physical_test_ck
+  sql = `SELECT * FROM physical_test_ckd
             WHERE patient_id = "${patientID}" 
-            order by recordDate desc limit 1`;
+            order by record_date desc limit 1`;
 
   try {
     result = await mysql.query(sql);
@@ -430,7 +430,7 @@ app.post("/getPhysicaltestCK", async (req, res) => {
   }
   const response_for_request = {
     record_id: result[0].id,
-    record_date: result[0].RecordDate,
+    record_date: result[0].record_date,
     data: [
       result[0].age,
       result[0].blood_pressure,
