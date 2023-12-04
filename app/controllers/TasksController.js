@@ -1,13 +1,38 @@
 
 const dbConfig = require("../config/db.config");
 const db = require("../../db");
-const { QueryTypes } = require("sequelize");
 const Task = db.Task;
+const { Op, QueryTypes } = require("sequelize");
 
 
 // Find all task, good
 exports.getAllTasks = (req, res) => {
-  Task.findAll()
+  const { filter } = req.query;
+  let whereCondition = {};
+
+  // Add condition based on the filter option
+  if (filter === 'today') {
+    const currentDate = new Date();
+    const oneDayAgo = new Date(currentDate.getTime() - 1 * 24 * 60 * 60 * 1000);
+    whereCondition = {
+      appointmentTime: {
+        [Op.gte]: oneDayAgo,
+      },
+    };
+  }
+  else if (filter === 'week') {
+    const currentDate = new Date();
+    const oneWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    whereCondition = {
+      appointmentTime: {
+        [Op.gte]: oneWeekAgo,
+      },
+    };
+  }
+
+  Task.findAll({
+    where: whereCondition, // Include the where condition here
+  })
     .then((data) => {
       res.send(data);
     })
@@ -21,9 +46,6 @@ exports.getAllTasks = (req, res) => {
 
 // Query specific task, good
 exports.getTaskByPatientDetails = (req, res) => {
-  //const { idd } = req.params.id;
-  //print idd
-  //console.log(typeof(req.params));
   Task.findOne({ 
     where: { 
       id: req.params.id,
@@ -41,6 +63,7 @@ exports.getTaskByPatientDetails = (req, res) => {
 
 // Create a new task,good
 exports.createTask = (req, res) => {
+  console.log(req.body);
   // Validate request
   if (!req.body.FName) {
     res.status(400).send({
@@ -57,6 +80,7 @@ exports.createTask = (req, res) => {
     LName: req.body.LName,
     Age: req.body.Age,
     Plan: req.body.Plan,
+    appointmentTime: req.body.appointmentTime,
   };
 
   // Save task in the database
@@ -65,17 +89,15 @@ exports.createTask = (req, res) => {
       res.send(data);
     })
     .catch((err) => {
+      console.log(err);
       res.status(400).send({
         message: `Some error occurred while creating the Task.`,
       });
     });
 };
 
-
-
 // Update task
 exports.updateTask = (req, res) => {
-  //const { id } = req.params;
   Task.update(req.body,{ where: { 
     id: req.params.id,
     } })
@@ -99,8 +121,6 @@ exports.updateTask = (req, res) => {
 
 // Delete task,good
 exports.deleteTask = (req, res) => {
-  //const { FName, MName, LName, Age } = req.params;
-
   Task.destroy({ where: { 
     id: req.params.id,
    } })
@@ -122,35 +142,3 @@ exports.deleteTask = (req, res) => {
     });
 };
 
-
-/*module.exports = (sequelize, Sequelize) => {
-  const Task = sequelize.define("task", {
-    DoctorName: {
-      type: Sequelize.STRING,
-    },
-    FName: {
-      type: Sequelize.STRING,
-    },
-    MName: {
-      type: Sequelize.STRING,
-    },
-    LName: {
-      type: Sequelize.STRING,
-    },
-    Age: {
-      type: Sequelize.INTEGER,
-    },
-    Plan: {
-      type: Sequelize.STRING,
-    },
-  });
-  return Task;
-};
-
-
-1. All tasks: Find all task
-2. Query tasks: Query all task containing FName
-3. Create a new task
-4. Update task
-5. Delete task
-*/
