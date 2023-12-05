@@ -29,7 +29,11 @@ router.post("/inactiveUser",(req,res) =>{inactiveUser.handelSubmit(req,res,db)})
 router.get("/specialities", specialitiesController.getAllSpecialities);
 router.get("/contact", contactController.getContactUs);
 router.get("/reviews", contactController.getReviews);
-router.get("/doctorhelp", contactController.getHelp);
+router.get("/doctorhelp", contactController.getDocHelp);
+router.get("/clinichelp", contactController.getClinicHelp);
+router.get("/joinus", contactController.getJoinUs);
+router.get("/doctaskStaff", contactController.getDocTaskStaff);
+router.get("/patientMessageStaff", contactController.getPatientMessageStaff);
 router.get("/tasks", TasksController.getAllTasks);
 router.get("/tasks/:id", TasksController.getTaskByPatientDetails);
 router.get("/tasks/:FName", TasksController.getTaskByPatientDetails);
