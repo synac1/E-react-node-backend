@@ -796,7 +796,104 @@ app.post("/contact", async (req, res) => {
 
 });
 
+
+app.post("/contactCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE contact_us SET contact_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
 //------------contact us API end ---------------------
+
+
+
+//-----------join us API start---------------------
+app.post("/joinUs", async (req, res) => {
+  const { formData } = req.body
+  const fName = formData.fName.trim()
+  const lName = formData.lName.trim()
+  const Email = formData.Email.trim()
+  const Phone = formData.Phone.trim()
+  const Address = formData.Address.trim()
+  const Specialty = formData.Specialty.trim()
+  const License = formData.License.trim()
+  const contactMessage = formData.contactMessage.trim()
+  const table_name = "join_us_request";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (fName, lName, phone, email, specialty, working_address,
+    certificate_num, note, receive, verify)
+  VALUES ("${fName}", "${lName}","${Phone}", ${Email ? '"' + Email + '"' : "NULL" },
+   ${Specialty ? '"' + Specialty + '"' : "NULL"},
+   ${Address ? '"' + Address + '"' : "NULL"},
+   ${License ? '"' + License + '"' : "NULL"},
+   ${contactMessage ? '"' + contactMessage + '"' : "NULL"},
+   0, 0)
+  ON DUPLICATE KEY 
+  UPDATE fName = "${fName}", 
+  lName = "${lName}",
+  phone = "${Phone}",
+  email = ${Email ? '"' + Email + '"' : "NULL"},
+  specialty = ${Specialty ? '"' + Specialty + '"' : "NULL"},
+  working_address = ${Address ? '"' + Address + '"' : "NULL"},
+  certificate_num  = ${License ? '"' + License + '"' : "NULL"},
+  note =  ${contactMessage ? '"' + contactMessage + '"' : "NULL"},
+  receive = 0, verify = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+
+app.post("/joinReceive", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE join_us_request SET receive = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+app.post("/joinVerify", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE join_us_request SET verify = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+//------------Join Us API end ---------------------
+
 
 
 
@@ -831,8 +928,110 @@ app.post("/doctorhelp", async (req, res) => {
 
 });
 
+
+app.post("/dochelpCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE doctors_help SET help_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
 //------------doctor help API end ---------------------
 
+
+
+
+//-----------staff tech support API start---------------------
+app.post("/stafftechsupport", async (req, res) => {
+  const { formData } = req.body
+  const help_name = formData.helpName.trim()
+  const help_phone = formData.helpPhone.trim()
+  const help_email = formData.helpEmail.trim()
+  const help_message = formData.helpMessage.trim()
+  const table_name = "clinic_help";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (help_name, help_phone, help_email, help_message, help_reply)
+  VALUES ("${help_name}", "${help_phone}", ${help_email ? '"' + help_email + '"' : "NULL"
+    }, ${help_message ? '"' + help_message + '"' : "NULL"
+    }, 0)
+  ON DUPLICATE KEY 
+  UPDATE help_name = "${help_name}", 
+  help_phone = "${help_phone}",
+  help_email = ${help_email ? '"' + help_email + '"' : "NULL"},
+  help_message = ${help_message ? '"' + help_message + '"' : "NULL"},
+  help_reply = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+app.post("/clinichelpCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE clinic_help SET help_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+//------------staff tech support API end ---------------------
+
+//------------doc task staff API start ---------------------
+
+app.post("/doctaskCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE doctor_task_request SET check_status = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+
+app.post("/stafftopatientReply", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE message_pat_to_clinicalstaff SET check_status = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+//------------doc task staff API start ---------------------
 
 //patient Overview data
 app.post("/patientOverview", async (req, res) => {
