@@ -1372,8 +1372,6 @@ app.get("/patientsRegistration", async (req, res) => {
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).send({ error: "Internal server error" });
-  } finally {
-    mysql.end(); // Close the connection
   }
 });
 
@@ -1387,8 +1385,6 @@ app.get("/doctorsRegistration", async (req, res) => {
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).send({ error: "Internal server error" });
-  } finally {
-    mysql.end(); // Close the connection
   }
 });
 
@@ -1401,9 +1397,7 @@ app.get("/alzheimers", async (req, res) => {
   } catch (error) {
     console.error("Database error:", error);
     res.status(500).send({ error: "Internal server error" });
-  } finally {
-    mysql.end(); // Close the connection
-  }
+  } 
 });
 
 app.get("/combinedPredictions", async (req, res) => {
@@ -1451,7 +1445,5 @@ app.get("/combinedPredictions", async (req, res) => {
   } catch (error) {
       console.error("Database error:", error);
       res.status(500).send({ error: "Internal server error" });
-  } finally {
-    mysql.end(); // Close the connection
-  }
+  } 
 });
