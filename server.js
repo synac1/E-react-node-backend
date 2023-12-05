@@ -252,6 +252,7 @@ app.post("/searchpatient", (req, res) => {
     if (error) {
       res.send({ error: "Something wrong in MySQL." });
       console.log("Something wrong in MySQL");
+      sqlDB.end();
       return;
     }
     if (result.length != 1) {
@@ -1354,3 +1355,103 @@ app.get('/psychology/:patientId', async (req, res, nxt) => {
 /**
  * Psychology Data Endpoint ends
  **/
+
+
+
+
+
+
+
+/* Analytics page end point */
+app.get("/patientsRegistration", async (req, res) => {
+  const sqlPatientsRegistration = `SELECT * FROM patients_registration`;
+
+  try {
+    const patientsRegistration = await mysql.query(sqlPatientsRegistration);
+    res.status(200).send(patientsRegistration);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  } finally {
+    mysql.end(); // Close the connection
+  }
+});
+
+/* Analytics page end point */
+app.get("/doctorsRegistration", async (req, res) => {
+  const sqlDoctorsRegistration = `SELECT * FROM doctors_registration`;
+
+  try {
+    const doctorsRegistration = await mysql.query(sqlDoctorsRegistration);
+    res.status(200).send(doctorsRegistration);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  } finally {
+    mysql.end(); // Close the connection
+  }
+});
+
+app.get("/alzheimers", async (req, res) => {
+  const sqlalzheimer = `SELECT * FROM alzheimer`;
+
+  try {
+    const alzheimer = await mysql.query(sqlalzheimer);
+    res.status(200).send(alzheimer);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  } finally {
+    mysql.end(); // Close the connection
+  }
+});
+
+app.get("/combinedPredictions", async (req, res) => {
+  const sqlQuery = `
+  SELECT patient_id, prediction, 'alzheimer' AS table_name FROM nkw2tiuvgv6ufu1z.alzheimer
+  UNION ALL
+  SELECT patient_id, prediction, 'arrhythmia' AS table_name FROM nkw2tiuvgv6ufu1z.arrhythmia
+  UNION ALL
+  SELECT patient_id, prediction, 'brain_tumor' AS table_name FROM nkw2tiuvgv6ufu1z.brain_tumor
+  UNION ALL
+  SELECT patient_id, prediction, 'breast_cancer' AS table_name FROM nkw2tiuvgv6ufu1z.breast_cancer
+  UNION ALL
+  SELECT patient_id, prediction, 'breast_disease' AS table_name FROM nkw2tiuvgv6ufu1z.breast_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'cancers' AS table_name FROM nkw2tiuvgv6ufu1z.cancers
+  UNION ALL
+  SELECT patient_id, prediction, 'cardiovascular' AS table_name FROM nkw2tiuvgv6ufu1z.cardiovascular
+  UNION ALL
+  SELECT patient_id, prediction, 'chronic_kidney' AS table_name FROM nkw2tiuvgv6ufu1z.chronic_kidney
+  UNION ALL
+  SELECT patient_id, prediction, 'coronary_artery_disease' AS table_name FROM nkw2tiuvgv6ufu1z.coronary_artery_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'gastrointestinal_disease' AS table_name FROM nkw2tiuvgv6ufu1z.gastrointestinal_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'heart_disease' AS table_name FROM nkw2tiuvgv6ufu1z.heart_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'juvenile_myopia' AS table_name FROM nkw2tiuvgv6ufu1z.juvenile_myopia
+  UNION ALL
+  SELECT patient_id, prediction, 'kidney_stone' AS table_name FROM nkw2tiuvgv6ufu1z.kidney_stone
+  UNION ALL
+  SELECT patient_id, prediction, 'liver_diseases' AS table_name FROM nkw2tiuvgv6ufu1z.liver_diseases
+  UNION ALL
+  SELECT patient_id, prediction, 'malaria' AS table_name FROM nkw2tiuvgv6ufu1z.malaria
+  UNION ALL
+  SELECT patient_id, prediction, 'multiple_sclerosis' AS table_name FROM nkw2tiuvgv6ufu1z.multiple_sclerosis
+  UNION ALL
+  SELECT patient_id, prediction, 'pneumonia' AS table_name FROM nkw2tiuvgv6ufu1z.pneumonia;
+  
+  `;
+
+  try {
+      const combinedData = await mysql.query(sqlQuery);
+      console.log("combined data", combinedData)
+      res.status(200).send(combinedData);
+  } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).send({ error: "Internal server error" });
+  } finally {
+    mysql.end(); // Close the connection
+  }
+});
