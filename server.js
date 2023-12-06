@@ -1690,10 +1690,58 @@ app.get("/combinedPredictions", async (req, res) => {
 
   try {
       const combinedData = await mysql.query(sqlQuery);
-      console.log("combined data", combinedData)
       res.status(200).send(combinedData);
   } catch (error) {
       console.error("Database error:", error);
       res.status(500).send({ error: "Internal server error" });
   } 
+});
+
+
+//---------------------Thyroid Disease API ------------------------
+app.post("/getDiabeticsData", async (req, res) => {
+  const patientID = req.body.patientId; //patient ID
+  if (!patientID) {
+    res.send({ error: "Missing patient ID." });
+    console.log("Missing patient ID.");
+    return;
+  }
+  
+  // Execute query
+  let sql = `SELECT * FROM nkw2tiuvgv6ufu1z.diabetes2 
+            WHERE patient_id = "${patientID}" 
+            order by patient_id desc limit 1`;  // Assuming you have a field to order by. Adjust if needed.
+
+  let result;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  
+  // Check patient result
+  if (result.length <= 0) {
+    res.send({ error: "No patient matched in database." });
+    console.log("No patient matched in database.");
+    return;
+  }
+  
+  const response_for_request = {
+    record_id: result[0].patient_id,
+    data: {
+      "patient_id":result[0].patient_id,
+      "pregs":result[0].pregs,
+      "gluc":result[0].gluc,
+      "bp":result[0].bp,
+      "skin":result[0].skin,
+      "insuli":result[0].insuli,
+      "bmi":30.1,
+      "fun":result[0].fun,
+      "age":30,
+    }
+  };
+  // console.log(response_for_request);
+  res.json(response_for_request);
 });
