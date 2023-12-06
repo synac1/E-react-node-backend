@@ -1,27 +1,42 @@
 
 
 const handelSubmit = (req,res,db,bcrypt)=>{
-    const {email , password, selectedOption} = req.body;
-    if(!email || !password){
-        db.select('Fname').from('nurses_registration').where('id','=',1).then(data =>{console.log(data)});
-        // return res.status(400).json('incorrect form submission');
-   }
-    db.select('email','hash').from('login')
-    .where('email','=',email)
-    .then(data =>{
-        const isValid = bcrypt.compareSync(password,data[0].hash);
-        if(isValid){
-            return db.select('*').from('users')
-            .where('email','=',email)
-            .then(user =>{
-                res.json(user[0])
-            })
-            .catch(err => res.status(400).json('unable to get user'))
-        }else{
-            res.status(400).json('wrong credentials');
-        }
+    const {labName,
+        emailID,
+        cEmailID,
+        password,
+        cPassword,
+        address1,
+        address2,
+        postalCode,
+        city,
+        province,
+        country,
+        referringPhysicianName,
+        referringPhysicianCI,
+        insuranceInformation,
+        paymentMethod,
+        taxRegistrationNumber} = req.body;
+
+    db('lab_admin').insert({
+        Lab_Name: labName,
+        Email_Id: emailID,
+        Location1: address1,
+        Location2: address2,
+        PostalCode: postalCode,
+        City: city,
+        Province: province,
+        Country: country,
+        Ref_Phy_Name: referringPhysicianName,
+        Ref_Phy_Con_Info: referringPhysicianCI,
+        Insu_Info: insuranceInformation,
+        TRN: taxRegistrationNumber,
+        Payment_Metho: paymentMethod,
+        password:password,
+        Availability:1
     })
-    .catch(err => res.status(400).json('wrong credentials'))
+    .then(() =>{res.status(200).json({ message: 'Operation successful' });})
+    .catch(err => res.status(400).json('Error in processing request'))
 }
 
 module.exports = {
