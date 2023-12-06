@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 const userRoutes = require("./app/routes/userRoutes");
 const appointmentRoutes = require('./app/routes/appointmentRoutes');
@@ -9,6 +10,8 @@ const session = require('express-session');
 
 const expressWs = require('express-ws');
 const multer = require('multer');
+var jsonParser = bodyParser.json();
+
 const corsOptions = {
   //origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com',
   origin: "*", // Replace with your local React server's URL
@@ -1448,6 +1451,57 @@ app.post("/deleteReminder", async (req, res) => {
 
   
 //-------------------------
+
+app.post("/addReview", jsonParser, bodyParser.urlencoded({ extended: false }),async (req, res) => {
+  const patientID = req.body.userId;
+  if (!patientID ) {
+ 
+    console.log("UserId Missing ID.");
+    return  res.send({ error: "UserId Missing ID." }).status(500);;
+  }
+    //queries
+  sql_review_insert_query= `INSERT INTO userreviews(UserID,Review, Rating) VALUES ('${req.body.userId}','${req.body.review}',${req.body.rating}) `;       
+  
+  //execute
+  try {
+     await mysql.query(sql_review_insert_query);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." }).status(500);
+    return;
+  }
+  
+  //console.log(patientData) 
+  
+  res.json({
+    response:"Review Sucessfully Submitted"
+  }).status(200);
+})
+
+app.get("/GetAllReviews",async (req, res) => {
+  
+    //queries
+  sql_review_insert_query= `SELECT * FROM userreviews; `;       
+  
+  //execute
+  try {
+    data =  await mysql.query(sql_review_insert_query);
+    return  res.send(data).status(200)
+    
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." }).status(500);
+    return;
+  }
+  
+  //console.log(patientData) 
+  
+  res.json({
+    response:"Review Sucessfully Submitted"
+  }).status(200);
+})
+
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
