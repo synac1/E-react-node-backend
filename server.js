@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 const userRoutes = require("./app/routes/userRoutes");
 const appointmentRoutes = require('./app/routes/appointmentRoutes');
@@ -9,6 +10,8 @@ const session = require('express-session');
 
 const expressWs = require('express-ws');
 const multer = require('multer');
+var jsonParser = bodyParser.json();
+
 const corsOptions = {
   //origin: 'https://e-react-frontend-55dbf7a5897e.herokuapp.com',
   origin: "*", // Replace with your local React server's URL
@@ -252,6 +255,7 @@ app.post("/searchpatient", (req, res) => {
     if (error) {
       res.send({ error: "Something wrong in MySQL." });
       console.log("Something wrong in MySQL");
+      sqlDB.end();
       return;
     }
     if (result.length != 1) {
@@ -795,7 +799,104 @@ app.post("/contact", async (req, res) => {
 
 });
 
+
+app.post("/contactCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE contact_us SET contact_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
 //------------contact us API end ---------------------
+
+
+
+//-----------join us API start---------------------
+app.post("/joinUs", async (req, res) => {
+  const { formData } = req.body
+  const fName = formData.fName.trim()
+  const lName = formData.lName.trim()
+  const Email = formData.Email.trim()
+  const Phone = formData.Phone.trim()
+  const Address = formData.Address.trim()
+  const Specialty = formData.Specialty.trim()
+  const License = formData.License.trim()
+  const contactMessage = formData.contactMessage.trim()
+  const table_name = "join_us_request";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (fName, lName, phone, email, specialty, working_address,
+    certificate_num, note, receive, verify)
+  VALUES ("${fName}", "${lName}","${Phone}", ${Email ? '"' + Email + '"' : "NULL" },
+   ${Specialty ? '"' + Specialty + '"' : "NULL"},
+   ${Address ? '"' + Address + '"' : "NULL"},
+   ${License ? '"' + License + '"' : "NULL"},
+   ${contactMessage ? '"' + contactMessage + '"' : "NULL"},
+   0, 0)
+  ON DUPLICATE KEY 
+  UPDATE fName = "${fName}", 
+  lName = "${lName}",
+  phone = "${Phone}",
+  email = ${Email ? '"' + Email + '"' : "NULL"},
+  specialty = ${Specialty ? '"' + Specialty + '"' : "NULL"},
+  working_address = ${Address ? '"' + Address + '"' : "NULL"},
+  certificate_num  = ${License ? '"' + License + '"' : "NULL"},
+  note =  ${contactMessage ? '"' + contactMessage + '"' : "NULL"},
+  receive = 0, verify = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+
+app.post("/joinReceive", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE join_us_request SET receive = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+app.post("/joinVerify", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE join_us_request SET verify = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+//------------Join Us API end ---------------------
+
 
 
 
@@ -830,8 +931,110 @@ app.post("/doctorhelp", async (req, res) => {
 
 });
 
+
+app.post("/dochelpCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE doctors_help SET help_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
 //------------doctor help API end ---------------------
 
+
+
+
+//-----------staff tech support API start---------------------
+app.post("/stafftechsupport", async (req, res) => {
+  const { formData } = req.body
+  const help_name = formData.helpName.trim()
+  const help_phone = formData.helpPhone.trim()
+  const help_email = formData.helpEmail.trim()
+  const help_message = formData.helpMessage.trim()
+  const table_name = "clinic_help";
+
+  // Execute query
+  sql = `INSERT into ${table_name} (help_name, help_phone, help_email, help_message, help_reply)
+  VALUES ("${help_name}", "${help_phone}", ${help_email ? '"' + help_email + '"' : "NULL"
+    }, ${help_message ? '"' + help_message + '"' : "NULL"
+    }, 0)
+  ON DUPLICATE KEY 
+  UPDATE help_name = "${help_name}", 
+  help_phone = "${help_phone}",
+  help_email = ${help_email ? '"' + help_email + '"' : "NULL"},
+  help_message = ${help_message ? '"' + help_message + '"' : "NULL"},
+  help_reply = 0;`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+
+});
+
+app.post("/clinichelpCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE clinic_help SET help_reply = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+//------------staff tech support API end ---------------------
+
+//------------doc task staff API start ---------------------
+
+app.post("/doctaskCheck", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE doctor_task_request SET check_status = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+
+
+
+app.post("/stafftopatientReply", async (req, res) => {
+
+  const id = req.body.id;
+
+  sql = `UPDATE message_pat_to_clinicalstaff SET check_status = 1 WHERE id = ${id};`;
+  try {
+    result = await mysql.query(sql);
+  } catch (error) {
+    console.log(error);
+    res.send({ error: "Something wrong in MySQL." });
+    return;
+  }
+  res.send({ success: "Form Submitted Successfully." });
+});
+//------------doc task staff API start ---------------------
 
 //patient Overview data
 app.post("/patientOverview", async (req, res) => {
@@ -1369,6 +1572,55 @@ app.post('/getIncomingReferrals', async (req, res) => {
   }
 });
 
+app.post("/addReview", jsonParser, bodyParser.urlencoded({ extended: false }),async (req, res) => {
+  const patientID = req.body.userId;
+  if (!patientID ) {
+ 
+    console.log("UserId Missing ID.");
+    return  res.send({ error: "UserId Missing ID." }).status(500);;
+  }
+    //queries
+  sql_review_insert_query= `INSERT INTO userreviews(UserID,Review, Rating) VALUES ('${req.body.userId}','${req.body.review}',${req.body.rating}) `;       
+  
+  //execute
+  try {
+     await mysql.query(sql_review_insert_query);
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." }).status(500);
+    return;
+  }
+  
+  //console.log(patientData) 
+  
+  res.json({
+    response:"Review Sucessfully Submitted"
+  }).status(200);
+})
+
+app.get("/GetAllReviews",async (req, res) => {
+  
+    //queries
+  sql_review_insert_query= `SELECT * FROM userreviews; `;       
+  
+  //execute
+  try {
+    data =  await mysql.query(sql_review_insert_query);
+    return  res.send(data).status(200)
+    
+  } catch (error) {
+    console.log(error, "Something wrong in MySQL.");
+    res.send({ error: "Something wrong in MySQL." }).status(500);
+    return;
+  }
+  
+  //console.log(patientData) 
+  
+  res.json({
+    response:"Review Sucessfully Submitted"
+  }).status(200);
+})
+
   
 //-------------------------
 
@@ -1477,3 +1729,95 @@ app.get('/psychology/:patientId', async (req, res, nxt) => {
 /**
  * Psychology Data Endpoint ends
  **/
+
+
+
+
+
+
+
+/* Analytics page end point */
+app.get("/patientsRegistration", async (req, res) => {
+  const sqlPatientsRegistration = `SELECT * FROM patients_registration`;
+
+  try {
+    const patientsRegistration = await mysql.query(sqlPatientsRegistration);
+    res.status(200).send(patientsRegistration);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
+
+/* Analytics page end point */
+app.get("/doctorsRegistration", async (req, res) => {
+  const sqlDoctorsRegistration = `SELECT * FROM doctors_registration`;
+
+  try {
+    const doctorsRegistration = await mysql.query(sqlDoctorsRegistration);
+    res.status(200).send(doctorsRegistration);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
+
+app.get("/alzheimers", async (req, res) => {
+  const sqlalzheimer = `SELECT * FROM alzheimer`;
+
+  try {
+    const alzheimer = await mysql.query(sqlalzheimer);
+    res.status(200).send(alzheimer);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send({ error: "Internal server error" });
+  } 
+});
+
+app.get("/combinedPredictions", async (req, res) => {
+  const sqlQuery = `
+  SELECT patient_id, prediction, 'alzheimer' AS table_name FROM nkw2tiuvgv6ufu1z.alzheimer
+  UNION ALL
+  SELECT patient_id, prediction, 'arrhythmia' AS table_name FROM nkw2tiuvgv6ufu1z.arrhythmia
+  UNION ALL
+  SELECT patient_id, prediction, 'brain_tumor' AS table_name FROM nkw2tiuvgv6ufu1z.brain_tumor
+  UNION ALL
+  SELECT patient_id, prediction, 'breast_cancer' AS table_name FROM nkw2tiuvgv6ufu1z.breast_cancer
+  UNION ALL
+  SELECT patient_id, prediction, 'breast_disease' AS table_name FROM nkw2tiuvgv6ufu1z.breast_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'cancers' AS table_name FROM nkw2tiuvgv6ufu1z.cancers
+  UNION ALL
+  SELECT patient_id, prediction, 'cardiovascular' AS table_name FROM nkw2tiuvgv6ufu1z.cardiovascular
+  UNION ALL
+  SELECT patient_id, prediction, 'chronic_kidney' AS table_name FROM nkw2tiuvgv6ufu1z.chronic_kidney
+  UNION ALL
+  SELECT patient_id, prediction, 'coronary_artery_disease' AS table_name FROM nkw2tiuvgv6ufu1z.coronary_artery_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'gastrointestinal_disease' AS table_name FROM nkw2tiuvgv6ufu1z.gastrointestinal_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'heart_disease' AS table_name FROM nkw2tiuvgv6ufu1z.heart_disease
+  UNION ALL
+  SELECT patient_id, prediction, 'juvenile_myopia' AS table_name FROM nkw2tiuvgv6ufu1z.juvenile_myopia
+  UNION ALL
+  SELECT patient_id, prediction, 'kidney_stone' AS table_name FROM nkw2tiuvgv6ufu1z.kidney_stone
+  UNION ALL
+  SELECT patient_id, prediction, 'liver_diseases' AS table_name FROM nkw2tiuvgv6ufu1z.liver_diseases
+  UNION ALL
+  SELECT patient_id, prediction, 'malaria' AS table_name FROM nkw2tiuvgv6ufu1z.malaria
+  UNION ALL
+  SELECT patient_id, prediction, 'multiple_sclerosis' AS table_name FROM nkw2tiuvgv6ufu1z.multiple_sclerosis
+  UNION ALL
+  SELECT patient_id, prediction, 'pneumonia' AS table_name FROM nkw2tiuvgv6ufu1z.pneumonia;
+  
+  `;
+
+  try {
+      const combinedData = await mysql.query(sqlQuery);
+      console.log("combined data", combinedData)
+      res.status(200).send(combinedData);
+  } catch (error) {
+      console.error("Database error:", error);
+      res.status(500).send({ error: "Internal server error" });
+  } 
+});
