@@ -1242,8 +1242,132 @@ app.post("/deleteReminder", async (req, res) => {
   }
 });
 
+// Save Referrals
+app.post('/saveReferral', (req, res) => {
+  const referral = req.body;
+  console.log(referral);
+
+  const sqlInsertReferral = `
+    INSERT INTO doctor_referrals (
+      doctor_id, 
+      patient_id, 
+      referred_doctor_FName, 
+      referred_doctor_LName, 
+      referred_doctor_phone, 
+      referred_doctor_specialization, 
+      is_referred_doctor_in_system, 
+      referred_doctor_id, 
+      referral_date, 
+      referral_message
+    ) VALUES (
+      ${referral.doctorId}, 
+      ${referral.patientId},
+      "${referral.referredDoctorFName}",
+      "${referral.referredDoctorLName}",
+      "${referral.referredDoctorPhone}",
+      "${referral.referredDoctorSpecialization}",
+      ${referral.isReferredDoctorInSystem ? 1 : 0},
+      ${referral.referredDoctorId ? referral.referredDoctorId : 'NULL'},
+      "${referral.referralDate}",
+      "${referral.referralMessage}"
+    )
+  `;
+
+  // Execute the query
+  try {
+    mysql.query(sqlInsertReferral, (error, results) => {
+      if (error) {
+        console.error(error);
+        res.status(500).send({ error: "Error in MySQL query." });
+      } else {
+        res.status(200).send({ message: 'Referral saved successfully', results });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Something went wrong with the MySQL server." });
+  }
+});
 
 //-------
+app.post('/getReferral', async (req, res) => {
+  const { doctorId } = req.body;
+
+  // Validate and sanitize inputs
+  // IMPORTANT: Add validation and sanitization here to prevent SQL injection
+  
+  const selectJoin=`SELECT 
+        dr.referral_id,
+        dr.doctor_id,
+        referringDoc.Fname AS referring_doctor_FName,
+        referringDoc.Lname AS referring_doctor_LName,
+        dr.patient_id,
+        pr.FName AS patient_FName,
+        pr.LName AS patient_LName,
+        pr.MobileNumber AS patient_MobileNumber,
+        dr.referred_doctor_FName,
+        dr.referred_doctor_LName,
+        dr.referred_doctor_phone,
+        dr.referred_doctor_specialization,
+        dr.is_referred_doctor_in_system,
+        dr.referred_doctor_id,
+        dr.referral_date,
+        dr.referral_message,
+        dr.first_appointment_date,
+        dr.record_time
+      FROM doctor_referrals dr
+      LEFT JOIN patients_registration pr ON dr.patient_id = pr.id
+      LEFT JOIN doctors_registration referringDoc ON dr.doctor_id = referringDoc.id
+      WHERE dr.doctor_id = ${doctorId}`; 
+  
+  try {
+    const result = await mysql.query(selectJoin);
+    console.log(result);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in MySQL:", error);
+    res.status(500).send({ error: "Something wrong in MySQL." });
+  }
+});
+app.post('/getIncomingReferrals', async (req, res) => {
+  const { doctorId } = req.body;
+
+  // Validate and sanitize inputs
+  // IMPORTANT: Add validation and sanitization here to prevent SQL injection
+  const selectJoin=`SELECT 
+        dr.referral_id,
+        dr.doctor_id,
+        referringDoc.Fname AS referring_doctor_FName,
+        referringDoc.Lname AS referring_doctor_LName,
+        dr.patient_id,
+        pr.FName AS patient_FName,
+        pr.LName AS patient_LName,
+        pr.MobileNumber AS patient_MobileNumber,
+        dr.referred_doctor_FName,
+        dr.referred_doctor_LName,
+        dr.referred_doctor_phone,
+        dr.referred_doctor_specialization,
+        dr.is_referred_doctor_in_system,
+        dr.referred_doctor_id,
+        dr.referral_date,
+        dr.referral_message,
+        dr.first_appointment_date,
+        dr.record_time
+      FROM doctor_referrals dr
+      LEFT JOIN patients_registration pr ON dr.patient_id = pr.id
+      LEFT JOIN doctors_registration referringDoc ON dr.doctor_id = referringDoc.id
+      WHERE dr.referred_doctor_id = ${doctorId}; 
+`;
+  
+  try {
+    const result = await mysql.query(selectJoin);
+    console.log(result);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in MySQL:", error);
+    res.status(500).send({ error: "Something wrong in MySQL." });
+  }
+});
 
   
 //-------------------------
